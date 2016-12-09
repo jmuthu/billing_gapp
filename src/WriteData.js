@@ -3,25 +3,25 @@ function initializeOutput(spreadSheet, month, year){
   var sheetName = "Bill - "+(month+1)+"/"+year;
   var output = spreadSheet.getSheetByName(sheetName);
   if (output != undefined) {
-    throwException("Bill report '"+ sheetName + "' already exists!");  
+    throwException("Bill report '"+ sheetName + "' already exists!");
   }
-  output = spreadSheet.insertSheet(sheetName);
+  output = spreadSheet.insertSheet(sheetName,0);
   output.clearContents();
   output.appendRow(['Bill Id',
                     'Contact Id',
-                    'Name',	
+                    'Name',
                     'Phone',
                     'Building Type',
-                    'Building Id',	
+                    'Building Id',
                     'Billing Start',
                     'Billing End',
-                    'Monthly rental',	
+                    'Monthly rental',
                     'Meter Charges',
                     'Current Charges',
-                    'Previous Due',	
-                    'Payment',	
+                    'Previous Due',
+                    'Payment',
                     'Late fees',
-                    'Adjustments',	
+                    'Adjustments',
                     'Total Due']);
   return output;
 }
@@ -37,10 +37,10 @@ function updateBalance(spreadSheet, balanceMap, month, year) {
   // var maxRows = balanceSheet.getMaxRows();
   // balanceSheet.getRange(2,balIndex,maxRows).clear();
   //}
-  
+
   for(var contactId in balanceMap) {
     var rowNo = getorSetBalanceContact(balanceSheet, contactId);
-    balanceSheet.getRange(rowNo,balIndex).setValue(balanceMap[contactId].Amount);    
+    balanceSheet.getRange(rowNo,balIndex).setValue(balanceMap[contactId].Amount);
   }
 }
 
