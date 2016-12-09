@@ -24,8 +24,8 @@ function getBalanceMap(balanceData,contactMap,month,year) {
   }
 
   for(var i =1; i <balanceData.length;i++) {
-    if (balanceData[i][prevBalIndex-1] != undefined && balanceData[i][prevBalIndex-1]!="") {
-      var balance = {ContactId:balanceData[i][prevBalIndex-1],
+    if (balanceData[i][prevBalIndex] != undefined && balanceData[i][prevBalIndex]!="") {
+      var balance = {ContactId:balanceData[i][0],
                    Amount:balanceData[i][prevBalIndex]};
       balanceMap[balance.ContactId] = balance;
     }

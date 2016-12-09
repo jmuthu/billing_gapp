@@ -7,7 +7,7 @@ function log(message) {
 
 function throwException(message) {
   log(message);
-  throw message;      
+  throw message;
 }
 
 function getMonthFromString(month) {
@@ -24,12 +24,13 @@ function daysInMonth(month,year) {
 
 function getBalanceDataIndex(balanceData, month, year){
   var date = new Date(year, month,daysInMonth(month,year),0,0,0,0);
-  var colIndex = -1; 
+  var colIndex = -1;
   for(var i = 1; true; i = i+1) {
     var header = balanceData[0][i];
     if (header == undefined) {
       break;
-    }else if (header.getTime() == date.getTime()) {
+    }else if (Object.prototype.toString.call(header) === "[object Date]" &&
+    header.getTime() == date.getTime()) {
       colIndex = i;
       break;
     }
@@ -42,7 +43,7 @@ function testCompare(){
   var d2 = new Date(2016,10,11);
   if (d1 >=d2) {
     log("true");
-  } 
+  }
 }
 
 function assert(data, type, name ){
