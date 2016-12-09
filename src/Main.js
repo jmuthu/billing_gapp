@@ -97,11 +97,11 @@ function generateBill(spreadSheet, month, year) {
 
 function calculateCharges(spreadSheet, billFrom, billTo) {
   var contactMap = getContactMap(spreadSheet);
+  var meterReadingMap = getMeterReadingMap(spreadSheet, billFrom, billTo);
   var buildingMap = getBuildingMap(spreadSheet,billFrom, billTo );
   var pricingMap = getPricingMap(spreadSheet, billFrom, billTo );
-  var meterReadingMap = getMeterReadingMap(spreadSheet, billFrom, billTo);
   var subscriptionList = getSubscriptionList(spreadSheet,buildingMap,billFrom, billTo);
-
+  buildPeriod(buildingMap, meterReadingMap, subscriptionList,billFrom);
   log("Processing totally " + subscriptionList.length + " subscriptions");
   var result ={};
   for (var i = 0; i < subscriptionList.length;i++) {
@@ -122,8 +122,9 @@ function calculateChargesForSubscriber(subscription, contact, pricing, meter, bu
   assert(building, "building", subscription.SubscriptionId);
 
   var monthlyRental =0;
-  for(var i=0; i < building.Period.length; i++) {
-    var period = building.Period[i];
+  var meterCharge = 0;
+  for(var i=0; i < building.PeriodList.length; i++) {
+    var period = building.PeriodList[i];
     if(subscription.BillingStart <= period.Start &&
        subscription.BillingEnd >= period.End) {
       var price = pricing.PricingPer1;
@@ -133,17 +134,18 @@ function calculateChargesForSubscriber(subscription, contact, pricing, meter, bu
         price = pricing.PricingPer3;
       }
       monthlyRental += period.Proration*price;
+      meterCharge += pricing.MeterRate*period.Meter/period.Count;
     }
   }
   monthlyRental = Math.round(monthlyRental);
-  var meterCharges = Math.round(subscription.Proration*pricing.MeterRate*meter.TotalMeter);
+  meterCharge = Math.round(meterCharge);
   var charges = {BuildingType:building.Type,
                  BuildingId:building.BuildingId,
                  Start:subscription.BillingStart,
                  End:subscription.BillingEnd,
                  Subscription:monthlyRental,
-                 Usage:meterCharges,
-                 Total:monthlyRental+meterCharges};
+                 Usage:meterCharge,
+                 Total:monthlyRental+meterCharge};
   contact.ChargeList.push(charges);
   contact.TotalCharges +=charges.Total;
   //Used for late fee. For multiple subscriptions, it updates any one of pricing

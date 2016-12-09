@@ -45,9 +45,9 @@ function getBuildingMap(spreadSheet, billFrom, billTo) {
     var building = {BuildingId:buildingData[i][0],
                    Type:buildingData[i][1],
                    MaxOccupants:buildingData[i][2],
-                   Period:[]
+                   PeriodList:[]
                    };
-    addPeriod(building.Period, billFrom, billTo);
+    addPeriod(building.PeriodList, billFrom, billTo);
     buildingMap[building.BuildingId] = building;
   }
   return buildingMap;
@@ -57,13 +57,17 @@ function getMeterReadingMap(spreadSheet,billFrom, billTo) {
   var meterData = spreadSheet.getSheetByName("Meter Reading").getDataRange().getValues();
   var meterReadingMap = {};
   for(var i =1; i <meterData.length;i++) {
-    var meterReading = {Month:meterData[i][0],
-                        Year:meterData[i][1],
+    var meterReading = {Start:meterData[i][0],
+                        End:meterData[i][1],
                         BuildingId:meterData[i][2],
-                        TotalMeter:meterData[i][5]};
-    if (getMonthFromString(meterReading.Month) == billFrom.getMonth() &&
-      billFrom.getYear() ==meterReading.Year)  {
-        meterReadingMap[meterReading.BuildingId] = meterReading;
+                        Value:meterData[i][5]};
+    if (meterReading.Start <= billTo &&
+      billFrom <= meterReading.End) {
+        if (meterReadingMap[meterReading.BuildingId]) {
+          meterReadingMap[meterReading.BuildingId].push(meterReading);
+        } else {
+          meterReadingMap[meterReading.BuildingId] = [meterReading];
+        }
     }
   }
   return meterReadingMap;
@@ -131,37 +135,65 @@ function getSubscriptionList(spreadSheet,buildingMap,billFrom, billTo) {
       subscription.BillingEnd = result.BillingEnd;
       subscription.Proration = result.Proration;
       subscriptionList.push(subscription);
-      addPeriod(buildingMap[subscription.BuildingId].Period,
+      addPeriod(buildingMap[subscription.BuildingId].PeriodList,
                 subscription.BillingStart,
                 subscription.BillingEnd) ;
     }
   }
-  buildPeriod(buildingMap,subscriptionList,billFrom);
+
   return subscriptionList;
 }
 
-function addPeriod(period, start, end) {
-  period.push(start);
+function addPeriod(periodList, start, end) {
+  periodList.push(start);
 
   var newEnd = new Date(end.valueOf());
   newEnd.setDate(newEnd.getDate() + 1); // Need to do this to sync with all start dates in period
-  period.push(newEnd);
+  periodList.push(newEnd);
 }
 
-function buildPeriod(buildingMap, subscriptionList, billFrom){
+function buildPeriod(buildingMap, meterReadingMap, subscriptionList, billFrom){
   for (var building in buildingMap){
-    var dates = sort_unique_date(buildingMap[building].Period);
+    var dates = sort_unique_date(buildingMap[building].PeriodList);
+    var meterReading = meterReadingMap[building];
     var result = [];
+    log("Period list for building id - "+ building);
     for (var i = 0; i < dates.length-1; i++) {
       var end = new Date(dates[i+1].valueOf());
       end.setDate(end.getDate()-1);
-      var count = countSubscription(buildingMap[building].BuildingId,subscriptionList,dates[i], end);
+
+      var count = countSubscription(buildingMap[building].BuildingId,
+        subscriptionList,dates[i], end);
       var proration = calculateProration(dates[i], end, billFrom);
-      result.push({Start:dates[i], End:end, Count:count, Proration:proration});
-      log(dates[i].toDateString() + " - " + end.toDateString() + " = "+ count + " (" + proration +")");
+      var meterValue = 0;
+      if (meterReading == undefined) {
+        log("Warning - Missing meter reading!");
+      } else {
+        meterValue = getMeterForBuildingPeriod(meterReading, dates[i], end);
+      }
+
+      result.push({Start:dates[i], End:end, Count:count, Proration:proration, Meter:meterValue});
+
+      log(dates[i].toDateString() + " - " + end.toDateString() +
+       ", Count : "+ count +
+       ", Meter : " + meterValue +
+       ", Proration : "+ proration);
     }
-    buildingMap[building].Period = result;
+    buildingMap[building].PeriodList = result;
   }
+}
+
+function getMeterForBuildingPeriod(meterReading, start, end) {
+  var result = 0;
+  for (var i = 0; i < meterReading.length; i++) {
+    if (meterReading[i].Start <= end && meterReading[i].End >=start ) {
+      var actualStart = meterReading[i].Start > start ? meterReading[i].Start:start;
+      var actualEnd = meterReading[i].End < end ? meterReading[i].End: end;
+      result += meterReading[i].Value*(actualEnd.getTime()- actualStart.getTime() + 86400000)/
+               (meterReading[i].End.getTime() - meterReading[i].Start.getTime() + 86400000);
+    }
+  }
+  return result;
 }
 
 function countSubscription(buildingId, subscriptionList, start, end) {
