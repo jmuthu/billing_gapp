@@ -52,12 +52,6 @@ function assert(data, type, name ){
   }
 }
 
-function calculateProration(actualStart, actualEnd, billFrom) {
-  var noOfDays = (actualEnd.getTime() - actualStart.getTime())/86400000 + 1;
-  var proration = noOfDays/daysInMonth(billFrom.getMonth(), billFrom.getYear());
-  return proration;
-}
-
 function sort_unique_date(arr) {
     if (arr.length === 0) return arr;
     arr = arr.sort(function(a,b){return a - b});
@@ -68,4 +62,10 @@ function sort_unique_date(arr) {
         }
     }
     return ret;
+}
+
+function incrementDay(date) {
+  var result = new Date(date);
+  result.setDate(result.getDate() + 1);
+  return result;
 }
