@@ -15,7 +15,7 @@ function monthlyBilling() {
   }
 
   log("Billing started for "+ monthString + ", " +year );
-  generateBill(spreadSheet, month, year);
+  generateBill(spreadSheet, undefined, undefined, month, year);
   log("Billing ended for " + monthString +", " +year);
 
   SpreadsheetApp.flush();
@@ -26,67 +26,87 @@ function generateFinalSettlement() {
   var spreadSheet = SpreadsheetApp.openById('1ESDzsXJr0HV4Rf3yMzT9hnGviNmyeUz7W8g9aZH3-D8');
   var inputSheet = spreadSheet.getSheetByName("Generate Bill");
   var contactId = inputSheet.getRange(2,5).getValue();
+  var date = new Date();
+  var settlementDay = inputSheet.getRange(2,6).getValue();
+  var settlementDate = new Date(date.getYear(), date.getMonth(), settlementDay,0,0,0,0);
   log("Settlement started for "+ contactId );
+  generateBill(spreadSheet, contactId, settlementDate, date.getMonth(), date.getYear());
   log("Settlement ended for " + contactId);
 }
 
-function generateBill(spreadSheet, month, year) {
+function generateBill(spreadSheet, settlementContactId, settlementDate, month, year) {
   var billFrom = new Date(year, month,1,0,0,0,0);
   var billTo = new Date(year, month,daysInMonth(month,year),0,0,0,0);
   var date = new Date();
 
-  if (date < billTo) {
+  if (date < billTo && settlementContactId == undefined) {
     // You can still run on the last day of month
     throwException("Cannot run billing for periods ending in future! " +
                    billTo.toDateString()+" is in future");
   }
-  var contactMap = calculateCharges(spreadSheet,billFrom, billTo);
-  var balanceData = spreadSheet.getSheetByName("Balance").getDataRange().getValues();
-  var balanceMap = getBalanceMap(balanceData, contactMap, month,year);
+  var pricingMap = getPricingMap(spreadSheet, billFrom, billTo );
+  var contactMap = calculateCharges(spreadSheet, pricingMap, settlementContactId,
+                                    settlementDate, billFrom, billTo);
+  var balanceMap = getBalanceMap(spreadSheet, contactMap, month,year);
   var arMap = getARMap(spreadSheet, billFrom, billTo);
-
-  var output = initializeOutput(spreadSheet, month, year);
+  var sheetName = "Bill - "+(month+1)+"/"+year;
+  if (settlementContactId != undefined) {
+    sheetName = "FS - "+ settlementContactId;
+  }
+  var output = initializeOutput(spreadSheet, sheetName);
 
   var billId = 1;
   for (var contactId in contactMap) {
+    var contact = contactMap[contactId];
+    if(contact.Status == 'Closed') {
+      continue;
+    }
     var ar = arMap[contactId];
     var balance = balanceMap[contactId];
-    var arResult = processAR(ar, contactMap[contactId].Pricing, balance.Amount);
-    var totalDue = contactMap[contactId].TotalCharges + balance.Amount -
-                   arResult.Payments + arResult.LateFee - arResult.Adjustments;
 
-    if (contactMap[contactId].ChargeList.length == 1) {
-      var charge = contactMap[contactId].ChargeList[0];
+    var arResult = processAR(ar, pricingMap[contact.LateFeePricingId], balance.Amount);
+    var totalDue = contact.TotalCharges + balance.Amount -
+                   arResult.Payments + arResult.LateFee - arResult.Adjustments;
+    var advance = 0;
+    if (settlementContactId != undefined && contactId == settlementContactId) {
+      advance = contact.Advance;
+      totalDue -= advance;
+      closeAccount(spreadSheet, contact.Index);
+    }
+    if (contact.ChargeList.length == 1) {
+      var charge = contact.ChargeList[0];
       output.appendRow([billId,
-                      contactMap[contactId].ContactId,
-                      contactMap[contactId].Name,
-                      contactMap[contactId].Phone,
+                      contact.ContactId,
+                      contact.Name,
+                      contact.Phone,
                       charge.BuildingType,
                       charge.BuildingId,
                       charge.Start,
                       charge.End,
                       charge.Subscription,
                       charge.Usage,
-                      contactMap[contactId].TotalCharges,
+                      contact.TotalCharges,
                       balance.Amount,
                       arResult.Payments,
                       arResult.LateFee,
                       arResult.Adjustments,
+                      advance,
                       totalDue]);
     } else {
       output.appendRow([billId,
-                      contactMap[contactId].ContactId,
-                      contactMap[contactId].Name,
-                      contactMap[contactId].Phone,
+                      contact.ContactId,
+                      contact.Name,
+                      contact.Phone,
                       '','','','','','',
-                      contactMap[contactId].TotalCharges,
+                      contact.TotalCharges,
                       balance.Amount,
                       arResult.Payments,
                       arResult.LateFee,
                       arResult.Adjustments,
+                      advance,
                       totalDue]);
-      for (var j = 0; j < contactMap[contactId].ChargeList.length; j++) {
-        var charge = contactMap[contactId].ChargeList[j];
+      for (var j = 0; j < contact.ChargeList.length; j++) {
+        var charge = contact.ChargeList[j];
         output.appendRow(['','','','',
                         charge.BuildingType,
                         charge.BuildingId,
@@ -100,7 +120,13 @@ function generateBill(spreadSheet, month, year) {
     billId++;
     balance.Amount = totalDue;
   }
-  updateBalance(spreadSheet, balanceMap, month,year);
+  output.appendRow(["Log"]);
+  output.appendRow([Logger.getLog()]);
+  var heading = new Date(year, month,daysInMonth(month,year),0,0,0,0);
+  if (settlementDate != undefined) {
+    heading = settlementContactId + " - " + settlementDate.toDateString();
+  }
+  updateBalance(spreadSheet, balanceMap, settlementContactId, heading);
 }
 
 function processAR(ar, pricing, balance) {
@@ -121,7 +147,7 @@ function processAR(ar, pricing, balance) {
       }
     }
   }
-  if (balance <= 0) {
+  if (balance <= 0 || pricing == undefined || pricing == "") {
     // No late fee
   } else if (firstPaymentDay > 15) {
     lateFee = pricing.LatePaymentAfter15days;

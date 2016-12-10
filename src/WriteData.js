@@ -1,9 +1,8 @@
 "use strict";
-function initializeOutput(spreadSheet, month, year){
-  var sheetName = "Bill - "+(month+1)+"/"+year;
+function initializeOutput(spreadSheet, sheetName){
   var output = spreadSheet.getSheetByName(sheetName);
   if (output != undefined) {
-    throwException("Bill report '"+ sheetName + "' already exists!");
+    throwException("Bill/Settlement Report  '"+ sheetName + "' already exists!");
   }
   output = spreadSheet.insertSheet(sheetName,0);
   output.clearContents();
@@ -22,25 +21,31 @@ function initializeOutput(spreadSheet, month, year){
                     'Payment',
                     'Late fees',
                     'Adjustments',
+                    'Advance',
                     'Total Due']);
   return output;
 }
 
-function updateBalance(spreadSheet, balanceMap, month, year) {
+function updateBalance(spreadSheet, balanceMap, settlementContactId, heading) {
   //var balIndex = getBalanceDataIndex(balanceData,month, year);
   var balanceSheet = spreadSheet.getSheetByName("Balance");
   //if (balIndex == -1) {
   balanceSheet.insertColumnAfter(1);
   var balIndex = 2;
-  balanceSheet.getRange(1,balIndex).setValue(new Date(year, month,daysInMonth(month,year),0,0,0,0));
+  balanceSheet.getRange(1,balIndex).setValue(heading);
   // } else {
   // var maxRows = balanceSheet.getMaxRows();
   // balanceSheet.getRange(2,balIndex,maxRows).clear();
   //}
 
-  for(var contactId in balanceMap) {
-    var rowNo = getorSetBalanceContact(balanceSheet, contactId);
-    balanceSheet.getRange(rowNo,balIndex).setValue(balanceMap[contactId].Amount);
+  if (settlementContactId != undefined) {
+    var rowNo = getorSetBalanceContact(balanceSheet, settlementContactId);
+    balanceSheet.getRange(rowNo,balIndex).setValue(balanceMap[settlementContactId].Amount);
+  } else {
+    for(var contactId in balanceMap) {
+      var rowNo = getorSetBalanceContact(balanceSheet, contactId);
+      balanceSheet.getRange(rowNo,balIndex).setValue(balanceMap[contactId].Amount);
+    }
   }
 }
 
@@ -54,4 +59,12 @@ function getorSetBalanceContact(balanceSheet, contactId) {
   }
   balanceSheet.getRange(i+1,1).setValue(contactId);
   return i+1;
+}
+
+function closeAccount(spreadSheet, index) {
+  spreadSheet.getSheetByName("Contact").getRange(index,9).setValue('Closed');
+}
+
+function updateSubscriptionEnd(spreadSheet, index, date) {
+  spreadSheet.getSheetByName("Subscription").getRange(index,6).setValue(date);
 }

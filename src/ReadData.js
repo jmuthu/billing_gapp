@@ -3,12 +3,15 @@ function getContactMap(spreadSheet) {
   var contactData = spreadSheet.getSheetByName("Contact").getDataRange().getValues();
   var contactMap = {};
   for(var i =1; i <contactData.length;i++) {
-    var contact = {ContactId:contactData[i][0],
-                   Name:contactData[i][1],
-                   Phone:contactData[i][2],
-                   Individual:contactData[i][3],
-                   Organization:contactData[i][4],
-                   Status:contactData[i][8],
+    var contact = {Index : i+1,
+                   ContactId : contactData[i][0],
+                   Name : contactData[i][1],
+                   Phone : contactData[i][2],
+                   Individual : contactData[i][3],
+                   Organization : contactData[i][4],
+                   Advance : contactData[i][7],
+                   Status : contactData[i][8],
+                   LateFeePricingId : contactData[i][9],
                    ChargeList:[],
                    TotalCharges:0};
     contactMap[contact.ContactId] = contact;
@@ -16,8 +19,9 @@ function getContactMap(spreadSheet) {
   return contactMap;
 }
 
-function getBalanceMap(balanceData,contactMap,month,year) {
+function getBalanceMap(spreadSheet,contactMap,month,year) {
   var balanceMap = {};
+  var balanceData = spreadSheet.getSheetByName("Balance").getDataRange().getValues();
   var prevBalIndex = getBalanceDataIndex(balanceData, month-1, year);
   if (prevBalIndex == -1) {
     throwException( "Error! Missing balance information for "+ month +"/"+ year);
@@ -117,12 +121,13 @@ function getSubscriptionList(spreadSheet, billFrom, billTo) {
   var subscriptionData = spreadSheet.getSheetByName("Subscription").getDataRange().getValues();
   var subscriptionList = [];
   for(var i =1; i <subscriptionData.length;i++) {
-    var subscription = {SubscriptionId:subscriptionData[i][0],
-                        ContactId:subscriptionData[i][1],
-                        PricingId:subscriptionData[i][2],
-                        BuildingId:subscriptionData[i][3],
-                        DateFrom:subscriptionData[i][4],
-                        DateTo:subscriptionData[i][5]};
+    var subscription = {Index : i+1,
+                        SubscriptionId : subscriptionData[i][0],
+                        ContactId : subscriptionData[i][1],
+                        PricingId : subscriptionData[i][2],
+                        BuildingId : subscriptionData[i][3],
+                        DateFrom : subscriptionData[i][4],
+                        DateTo : subscriptionData[i][5]};
 
     if (subscription.DateFrom <= billTo && billFrom <= subscription.DateTo) {
       var result = getSubscriptionPeriod(subscription.DateFrom,
@@ -131,8 +136,6 @@ function getSubscriptionList(spreadSheet, billFrom, billTo) {
                            billTo);
       subscription.BillingStart = result.BillingStart;
       subscription.BillingEnd = result.BillingEnd;
-      subscription.Proration = result.Proration;
-
       subscriptionList.push(subscription);
     }
   }
