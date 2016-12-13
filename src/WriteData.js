@@ -4,7 +4,7 @@
 
 function initializeOutput(spreadSheet, sheetName) {
     var output = spreadSheet.getSheetByName(sheetName);
-    if (output !== undefined) {
+    if (output !== null) {
         throwException("Bill/Settlement Report  '" + sheetName + "' already exists!");
     }
     output = spreadSheet.insertSheet(sheetName, 0);
