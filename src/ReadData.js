@@ -3,29 +3,29 @@
 "use strict";
 
 
-function getContactMap(spreadSheet) {
-    var contactData = spreadSheet.getSheetByName("Contact").getDataRange().getValues();
-    var contactMap = {};
-    for (var i = 1; i < contactData.length; i++) {
-        var contact = {
+function getSubscriberMap(spreadSheet) {
+    var subscriberData = spreadSheet.getSheetByName("Subscriber").getDataRange().getValues();
+    var subscriberMap = {};
+    for (var i = 1; i < subscriberData.length; i++) {
+        var subscriber = {
             Index: i + 1,
-            ContactId: contactData[i][0],
-            Name: contactData[i][1],
-            Phone: contactData[i][2],
-            Individual: contactData[i][3],
-            Organization: contactData[i][4],
-            Advance: contactData[i][7],
-            Status: contactData[i][8],
-            LateFeePricingId: contactData[i][9],
+            SubscriberId: subscriberData[i][0],
+            Name: subscriberData[i][1],
+            Phone: subscriberData[i][2],
+            Individual: subscriberData[i][3],
+            Organization: subscriberData[i][4],
+            Advance: subscriberData[i][7],
+            Status: subscriberData[i][8],
+            LateFeePricingId: subscriberData[i][9],
             ChargeList: [],
             TotalCharges: 0
         };
-        contactMap[contact.ContactId] = contact;
+        subscriberMap[subscriber.SubscriberId] = subscriber;
     }
-    return contactMap;
+    return subscriberMap;
 }
 
-function getBalanceMap(spreadSheet, contactMap, month, year) {
+function getBalanceMap(spreadSheet, subscriberMap, month, year) {
     var balanceMap = {};
     var balanceData = spreadSheet.getSheetByName("Balance").getDataRange().getValues();
     var prevBalIndex = getBalanceDataIndex(balanceData, month - 1, year);
@@ -37,16 +37,16 @@ function getBalanceMap(spreadSheet, contactMap, month, year) {
         if (balanceData[i][prevBalIndex] !== undefined &&
             balanceData[i][prevBalIndex] !== "") {
             var balance = {
-                ContactId: balanceData[i][0],
+                SubscriberId: balanceData[i][0],
                 Amount: balanceData[i][prevBalIndex]
             };
-            balanceMap[balance.ContactId] = balance;
+            balanceMap[balance.SubscriberId] = balance;
         }
     }
-    for (var contactId in contactMap) {
-        if (balanceMap[contactId] === undefined) {
-            balanceMap[contactId] = {
-                ContactId: contactId,
+    for (var subscriberId in subscriberMap) {
+        if (balanceMap[subscriberId] === undefined) {
+            balanceMap[subscriberId] = {
+                SubscriberId: subscriberId,
                 Amount: 0
             };
         }
@@ -143,7 +143,7 @@ function getSubscriptionList(spreadSheet, billFrom, billTo) {
         var subscription = {
             Index: i + 1,
             SubscriptionId: subscriptionData[i][0],
-            ContactId: subscriptionData[i][1],
+            SubscriberId: subscriptionData[i][1],
             PricingId: subscriptionData[i][2],
             BuildingId: subscriptionData[i][3],
             DateFrom: subscriptionData[i][4],

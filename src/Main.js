@@ -31,68 +31,68 @@ function monthlyBilling() {
 function generateFinalSettlement() {
     var spreadSheet = SpreadsheetApp.openById('1ESDzsXJr0HV4Rf3yMzT9hnGviNmyeUz7W8g9aZH3-D8');
     var inputSheet = spreadSheet.getSheetByName("Generate Bill");
-    var contactId = inputSheet.getRange(2, 5).getValue();
+    var subscriberId = inputSheet.getRange(2, 5).getValue();
     var date = new Date();
     var settlementDay = inputSheet.getRange(2, 6).getValue();
     var settlementDate = new Date(date.getYear(), date.getMonth(), settlementDay, 0, 0, 0, 0);
-    log("Settlement started for " + contactId);
-    generateBill(spreadSheet, contactId, settlementDate, date.getMonth(), date.getYear());
-    log("Settlement ended for " + contactId);
+    log("Settlement started for " + subscriberId);
+    generateBill(spreadSheet, subscriberId, settlementDate, date.getMonth(), date.getYear());
+    log("Settlement ended for " + subscriberId);
 }
 
-function generateBill(spreadSheet, settlementContactId, settlementDate, month, year) {
+function generateBill(spreadSheet, settlementSubscriberId, settlementDate, month, year) {
     var billFrom = new Date(year, month, 1, 0, 0, 0, 0);
     var billTo = new Date(year, month, daysInMonth(month, year), 0, 0, 0, 0);
     var date = new Date();
 
-    if (date < billTo && settlementContactId === undefined) {
+    if (date < billTo && settlementSubscriberId === undefined) {
         // You can still run on the last day of month
         throwException("Cannot run billing for periods ending in future! " +
             billTo.toDateString() + " is in future");
     }
     var pricingMap = getPricingMap(spreadSheet, billFrom, billTo);
-    var contactMap = calculateCharges(spreadSheet, pricingMap, settlementContactId,
+    var subscriberMap = calculateCharges(spreadSheet, pricingMap, settlementSubscriberId,
         settlementDate, billFrom, billTo);
-    var balanceMap = getBalanceMap(spreadSheet, contactMap, month, year);
+    var balanceMap = getBalanceMap(spreadSheet, subscriberMap, month, year);
     var arMap = getARMap(spreadSheet, billFrom, billTo);
     var sheetName = "Bill - " + (month + 1) + "/" + year;
-    if (settlementContactId !== undefined) {
-        sheetName = "FS - " + settlementContactId;
+    if (settlementSubscriberId !== undefined) {
+        sheetName = "FS - " + settlementSubscriberId;
     }
     var output = initializeOutput(spreadSheet, sheetName);
 
     var billId = 1;
-    for (var contactId in contactMap) {
-        var contact = contactMap[contactId];
-        if (contact.Status == 'Closed') {
+    for (var subscriberId in subscriberMap) {
+        var subscriber = subscriberMap[subscriberId];
+        if (subscriber.Status == 'Closed') {
             continue;
         }
-        var ar = arMap[contactId];
-        var balance = balanceMap[contactId];
+        var ar = arMap[subscriberId];
+        var balance = balanceMap[subscriberId];
 
-        var arResult = processAR(ar, pricingMap[contact.LateFeePricingId], balance.Amount);
-        var totalDue = contact.TotalCharges + balance.Amount -
+        var arResult = processAR(ar, pricingMap[subscriber.LateFeePricingId], balance.Amount);
+        var totalDue = subscriber.TotalCharges + balance.Amount -
             arResult.Payments + arResult.LateFee - arResult.Adjustments;
         var advance = 0;
-        if (settlementContactId !== undefined && contactId == settlementContactId) {
-            advance = contact.Advance;
+        if (settlementSubscriberId !== undefined && subscriberId == settlementSubscriberId) {
+            advance = subscriber.Advance;
             totalDue -= advance;
-            closeAccount(spreadSheet, contact.Index);
+            closeAccount(spreadSheet, subscriber.Index);
         }
         var charge;
-        if (contact.ChargeList.length == 1) {
-            charge = contact.ChargeList[0];
+        if (subscriber.ChargeList.length == 1) {
+            charge = subscriber.ChargeList[0];
             output.appendRow([billId,
-                contact.ContactId,
-                contact.Name,
-                contact.Phone,
+                subscriber.SubscriberId,
+                subscriber.Name,
+                subscriber.Phone,
                 charge.BuildingType,
                 charge.BuildingId,
                 charge.Start,
                 charge.End,
                 charge.Subscription,
                 charge.Usage,
-                contact.TotalCharges,
+                subscriber.TotalCharges,
                 balance.Amount,
                 arResult.Payments,
                 arResult.LateFee,
@@ -102,11 +102,11 @@ function generateBill(spreadSheet, settlementContactId, settlementDate, month, y
             ]);
         } else {
             output.appendRow([billId,
-                contact.ContactId,
-                contact.Name,
-                contact.Phone,
+                subscriber.SubscriberId,
+                subscriber.Name,
+                subscriber.Phone,
                 '', '', '', '', '', '',
-                contact.TotalCharges,
+                subscriber.TotalCharges,
                 balance.Amount,
                 arResult.Payments,
                 arResult.LateFee,
@@ -114,8 +114,8 @@ function generateBill(spreadSheet, settlementContactId, settlementDate, month, y
                 advance,
                 totalDue
             ]);
-            for (var j = 0; j < contact.ChargeList.length; j++) {
-                charge = contact.ChargeList[j];
+            for (var j = 0; j < subscriber.ChargeList.length; j++) {
+                charge = subscriber.ChargeList[j];
                 output.appendRow(['', '', '', '',
                     charge.BuildingType,
                     charge.BuildingId,
@@ -134,9 +134,9 @@ function generateBill(spreadSheet, settlementContactId, settlementDate, month, y
     output.appendRow([Logger.getLog()]);
     var heading = new Date(year, month, daysInMonth(month, year), 0, 0, 0, 0);
     if (settlementDate !== undefined) {
-        heading = settlementContactId + " - " + settlementDate.toDateString();
+        heading = settlementSubscriberId + " - " + settlementDate.toDateString();
     }
-    updateBalance(spreadSheet, balanceMap, settlementContactId, heading);
+    updateBalance(spreadSheet, balanceMap, settlementSubscriberId, heading);
 }
 
 function processAR(ar, pricing, balance) {

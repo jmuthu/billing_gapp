@@ -10,7 +10,7 @@ function initializeOutput(spreadSheet, sheetName) {
     output = spreadSheet.insertSheet(sheetName, 0);
     output.clearContents();
     output.appendRow(['Bill Id',
-        'Contact Id',
+        'Subscriber Id',
         'Name',
         'Phone',
         'Building Type',
@@ -30,7 +30,7 @@ function initializeOutput(spreadSheet, sheetName) {
     return output;
 }
 
-function updateBalance(spreadSheet, balanceMap, settlementContactId, heading) {
+function updateBalance(spreadSheet, balanceMap, settlementSubscriberId, heading) {
     //var balIndex = getBalanceDataIndex(balanceData,month, year);
     var balanceSheet = spreadSheet.getSheetByName("Balance");
     //if (balIndex == -1) {
@@ -42,31 +42,31 @@ function updateBalance(spreadSheet, balanceMap, settlementContactId, heading) {
     // balanceSheet.getRange(2,balIndex,maxRows).clear();
     //}
     var rowNo;
-    if (settlementContactId !== undefined) {
-        rowNo = getorSetBalanceContact(balanceSheet, settlementContactId);
-        balanceSheet.getRange(rowNo, balIndex).setValue(balanceMap[settlementContactId].Amount);
+    if (settlementSubscriberId !== undefined) {
+        rowNo = getorSetBalanceSubscriber(balanceSheet, settlementSubscriberId);
+        balanceSheet.getRange(rowNo, balIndex).setValue(balanceMap[settlementSubscriberId].Amount);
     } else {
-        for (var contactId in balanceMap) {
-            rowNo = getorSetBalanceContact(balanceSheet, contactId);
-            balanceSheet.getRange(rowNo, balIndex).setValue(balanceMap[contactId].Amount);
+        for (var subscriberId in balanceMap) {
+            rowNo = getorSetBalanceSubscriber(balanceSheet, subscriberId);
+            balanceSheet.getRange(rowNo, balIndex).setValue(balanceMap[subscriberId].Amount);
         }
     }
 }
 
-function getorSetBalanceContact(balanceSheet, contactId) {
+function getorSetBalanceSubscriber(balanceSheet, subscriberId) {
     var balanceData = balanceSheet.getDataRange().getValues();
     var i = 1;
     for (; i < balanceData.length; i++) {
-        if (balanceData[i][0] == contactId) {
+        if (balanceData[i][0] == subscriberId) {
             return i + 1;
         }
     }
-    balanceSheet.getRange(i + 1, 1).setValue(contactId);
+    balanceSheet.getRange(i + 1, 1).setValue(subscriberId);
     return i + 1;
 }
 
 function closeAccount(spreadSheet, index) {
-    spreadSheet.getSheetByName("Contact").getRange(index, 9).setValue('Closed');
+    spreadSheet.getSheetByName("Subscriber").getRange(index, 9).setValue('Closed');
 }
 
 function updateSubscriptionEnd(spreadSheet, index, date) {

@@ -1,59 +1,59 @@
 /* jshint -W097 */
-/* globals getContactMap, getSubscriptionList, getBuildingMap, log,
+/* globals getSubscriberMap, getSubscriptionList, getBuildingMap, log,
 updateSubscriptionEnd, assert, daysInMonth, getMeterReadingMap,
 sort_unique_date, throwException, incrementDay*/
 "use strict";
 
-function calculateCharges(spreadSheet, pricingMap, settlementContactId,
+function calculateCharges(spreadSheet, pricingMap, settlementSubscriberId,
     settlementDate, billFrom, billTo) {
-    var contactMap = getContactMap(spreadSheet);
+    var subscriberMap = getSubscriberMap(spreadSheet);
     var subscriptionList = getSubscriptionList(spreadSheet, billFrom, billTo);
     var buildingMap = getBuildingMap(spreadSheet, billFrom, billTo);
-    if (settlementContactId !== undefined) {
-        var result = getSubscription(spreadSheet, subscriptionList, buildingMap, settlementContactId,
+    if (settlementSubscriberId !== undefined) {
+        var result = getSubscription(spreadSheet, subscriptionList, buildingMap, settlementSubscriberId,
             settlementDate);
         if (result.SubscriptionList.length > 0) { // Settlement is done much after subscription expires
             addPeriod(subscriptionList, buildingMap);
             buildPeriod(spreadSheet, result.BuildingMap,
                 subscriptionList, billFrom, billTo);
-            processSubscription(result.SubscriptionList, contactMap, pricingMap,
+            processSubscription(result.SubscriptionList, subscriberMap, pricingMap,
                 result.BuildingMap, billFrom, billTo);
         }
-        var settlementContactMap = {};
-        settlementContactMap[settlementContactId] = contactMap[settlementContactId];
-        return settlementContactMap;
+        var settlementSubscriberMap = {};
+        settlementSubscriberMap[settlementSubscriberId] = subscriberMap[settlementSubscriberId];
+        return settlementSubscriberMap;
     } else {
         addPeriod(subscriptionList, buildingMap);
         buildPeriod(spreadSheet, buildingMap, subscriptionList, billFrom, billTo);
-        processSubscription(subscriptionList, contactMap, pricingMap,
+        processSubscription(subscriptionList, subscriberMap, pricingMap,
             buildingMap, billFrom, billTo);
-        return contactMap;
+        return subscriberMap;
     }
 }
 
-function processSubscription(subscriptionList, contactMap, pricingMap,
+function processSubscription(subscriptionList, subscriberMap, pricingMap,
     buildingMap, billFrom, billTo) {
     log("Processing totally " + subscriptionList.length + " subscriptions");
     for (var i = 0; i < subscriptionList.length; i++) {
-        var contact = contactMap[subscriptionList[i].ContactId];
-        if (contact.Status == 'Closed') {
+        var subscriber = subscriberMap[subscriptionList[i].SubscriberId];
+        if (subscriber.Status == 'Closed') {
             continue;
         }
         var pricing = pricingMap[subscriptionList[i].PricingId];
         var building = buildingMap[subscriptionList[i].BuildingId];
-        calculateChargesForSubscriber(subscriptionList[i], contact, pricing,
+        calculateChargesForSubscriber(subscriptionList[i], subscriber, pricing,
             building, billFrom, billTo);
     }
 }
 
-function getSubscription(spreadSheet, subscriptionList, buildingMap, settlementContactId, settlementDate) {
+function getSubscription(spreadSheet, subscriptionList, buildingMap, settlementSubscriberId, settlementDate) {
     var result = {
         SubscriptionList: [],
         BuildingMap: {}
     };
     for (var i = 0; i < subscriptionList.length; i++) {
         var subscription = subscriptionList[i];
-        if (settlementContactId == subscription.ContactId) {
+        if (settlementSubscriberId == subscription.SubscriberId) {
             if (subscription.DateFrom <= settlementDate &&
                 subscription.DateTo > settlementDate) {
                 log("Updating end date to settlement date for Subscription id - " +
@@ -69,10 +69,10 @@ function getSubscription(spreadSheet, subscriptionList, buildingMap, settlementC
     return result;
 }
 
-function calculateChargesForSubscriber(subscription, contact, pricing,
+function calculateChargesForSubscriber(subscription, subscriber, pricing,
     building, billFrom, billTo) {
     assert(pricing, "pricing", subscription.SubscriptionId);
-    assert(contact, "contact", subscription.SubscriptionId);
+    assert(subscriber, "subscriber", subscription.SubscriptionId);
     assert(building, "building", subscription.SubscriptionId);
 
     var monthlyRental = 0;
@@ -102,8 +102,8 @@ function calculateChargesForSubscriber(subscription, contact, pricing,
         Usage: meterCharge,
         Total: monthlyRental + meterCharge
     };
-    contact.ChargeList.push(charges);
-    contact.TotalCharges += charges.Total;
+    subscriber.ChargeList.push(charges);
+    subscriber.TotalCharges += charges.Total;
 
 }
 
