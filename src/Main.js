@@ -44,19 +44,19 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
 
     if (date < billTo && settlementSubscriberId === undefined) {
         // You can still run on the last day of month
-        throwException("Cannot run billing for periods ending in future! " +
-            billTo.toDateString() + " is in future");
+        throwException("Cannot run billing for periods ending in future! " + billTo.toDateString() + " is in future");
     }
     var pricingMap = getPricingMap(billFrom, billTo);
-    var subscriberMap = calculateCharges(pricingMap, settlementSubscriberId,
-        settlementDate, billFrom, billTo);
+    var subscriberMap = calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo);
     var balanceMap = getBalanceMap(subscriberMap, month, year);
     var arMap = getARMap(billFrom, billTo);
+
     var sheetName = "Bill - " + (month + 1) + "/" + year;
     if (settlementSubscriberId !== undefined) {
         sheetName = "FS - " + settlementSubscriberId;
     }
-    var output = initializeOutput(sheetName);
+
+    var billReport = new BillReport(sheetName);
 
     var billId = 1;
     for (var subscriberId in subscriberMap) {
@@ -64,76 +64,28 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
         if (subscriber.Status == 'Closed') {
             continue;
         }
-        var ar = arMap[subscriberId];
         var balance = balanceMap[subscriberId];
 
-        var arResult = processAR(ar, pricingMap[subscriber.LateFeePricingId], balance.Amount);
-        var totalDue = subscriber.TotalCharges + balance.Amount -
-            arResult.Payments + arResult.LateFee - arResult.Adjustments;
+        var arResult = processAR(arMap[subscriberId], pricingMap[subscriber.LateFeePricingId], balance.Amount);
+        var totalDue = subscriber.TotalCharges + balance.Amount - arResult.Payments + arResult.LateFee - arResult.Adjustments;
         var advance = 0;
         if (settlementSubscriberId !== undefined && subscriberId == settlementSubscriberId) {
             advance = subscriber.Advance;
             totalDue -= advance;
             closeAccount(subscriber.Index);
         }
-        var charge;
-        if (subscriber.ChargeList.length == 1) {
-            charge = subscriber.ChargeList[0];
-            output.appendRow([billId,
-                subscriber.SubscriberId,
-                subscriber.Name,
-                subscriber.Phone,
-                charge.BuildingType,
-                charge.BuildingId,
-                charge.Start,
-                charge.End,
-                charge.Subscription,
-                charge.Usage,
-                subscriber.TotalCharges,
-                balance.Amount,
-                arResult.Payments,
-                arResult.LateFee,
-                arResult.Adjustments,
-                advance,
-                totalDue
-            ]);
-        } else {
-            output.appendRow([billId,
-                subscriber.SubscriberId,
-                subscriber.Name,
-                subscriber.Phone,
-                '', '', '', '', '', '',
-                subscriber.TotalCharges,
-                balance.Amount,
-                arResult.Payments,
-                arResult.LateFee,
-                arResult.Adjustments,
-                advance,
-                totalDue
-            ]);
-            for (var j = 0; j < subscriber.ChargeList.length; j++) {
-                charge = subscriber.ChargeList[j];
-                output.appendRow(['', '', '', '',
-                    charge.BuildingType,
-                    charge.BuildingId,
-                    charge.Start,
-                    charge.End,
-                    charge.Subscription,
-                    charge.Usage,
-                    charge.Total
-                ]);
-            }
-        }
-        billId++;
+
+        billReport.addBill(billId, subscriber, balance.Amount, arResult, advance, totalDue);
+
         balance.Amount = totalDue;
+        billId++;
     }
-    output.appendRow(["Log"]);
-    output.appendRow([Logger.getLog()]);
     var heading = new Date(year, month, daysInMonth(month, year), 0, 0, 0, 0);
     if (settlementDate !== undefined) {
         heading = settlementSubscriberId + " - " + settlementDate.toDateString();
     }
     updateBalance(balanceMap, settlementSubscriberId, heading);
+    billReport.close();
 }
 
 function processAR(ar, pricing, balance) {
@@ -161,9 +113,5 @@ function processAR(ar, pricing, balance) {
     } else if (firstPaymentDay > 10) {
         lateFee = pricing.LatePayment10_15days;
     }
-    return {
-        Payments: payments,
-        LateFee: lateFee,
-        Adjustments: adjustments
-    };
+    return {Payments: payments, LateFee: lateFee, Adjustments: adjustments};
 }

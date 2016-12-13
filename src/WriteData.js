@@ -2,34 +2,99 @@
 /* globals throwException, SpreadsheetRepository */
 "use strict";
 
-function initializeOutput(sheetName) {
-    var output = SpreadsheetRepository.spreadSheet.getSheetByName(sheetName);
-    if (output !== null) {
-        throwException("Bill/Settlement Report  '" + sheetName + "' already exists!");
+function BillReport(name) {
+    if (SpreadsheetRepository.spreadSheet.getSheetByName(name) !== null) {
+        throwException("Bill/Settlement Report  '" + name + "' already exists!");
     }
-    output = SpreadSheetRepository.spreadSheet.insertSheet(sheetName, 0);
-    output.clearContents();
-    output.appendRow([
+    this.name = name;
+    this.buffer = [];
+    this.rowIndex = 0;
+    this.buffer[this.rowIndex] = [
         'Bill Id',
         'Subscriber Id',
         'Name',
         'Phone',
+        'Total Due =',
+        'Previous Due',
+        '- Payment',
+        '+ Late fees',
+        '- Adjustments',
+        '- Advance',
+        '+ Total Charges',
         'Building Type',
         'Building Id',
         'Billing Start',
         'Billing End',
         'Monthly rental',
-        'Meter Charges',
-        'Current Charges',
-        'Previous Due',
-        'Payment',
-        'Late fees',
-        'Adjustments',
-        'Advance',
-        'Total Due'
-    ]);
-    return output;
+        'Meter Charges'
+    ];
 }
+
+BillReport.prototype.addBill = function(billId, subscriber, previousDue, arResult, advance, totalDue) {
+    this.rowIndex++;
+    var billSummary = [
+        billId,
+        subscriber.SubscriberId,
+        subscriber.Name,
+        subscriber.Phone,
+        totalDue,
+        previousDue,
+        arResult.Payments,
+        arResult.LateFee,
+        arResult.Adjustments,
+        advance,
+        subscriber.TotalCharges
+    ];
+    var charge;
+    if (subscriber.ChargeList.length == 1) {
+        charge = subscriber.ChargeList[0];
+        this.buffer[this.rowIndex] = billSummary.concat([
+            charge.BuildingType,
+            charge.BuildingId,
+            charge.Start,
+            charge.End,
+            charge.Subscription,
+            charge.Usage
+        ]);
+    } else {
+        this.buffer[this.rowIndex] = billSummary.concat([
+            '',
+            '',
+            '',
+            '',
+            '',
+            ''
+        ]);
+        for (var j = 0; j < subscriber.ChargeList.length; j++) {
+            charge = subscriber.ChargeList[j];
+            this.rowIndex++;
+            this.buffer[this.rowIndex] = [
+                '',
+                '',
+                '',
+                '',
+                '',
+                charge.Total,
+                '',
+                '',
+                '',
+                '',
+                '',
+                charge.BuildingType,
+                charge.BuildingId,
+                charge.Start,
+                charge.End,
+                charge.Subscription,
+                charge.Usage
+            ];
+        }
+    }
+};
+
+BillReport.prototype.close = function() {
+    var billSheet = SpreadsheetRepository.spreadSheet.insertSheet(this.name, 0);
+    billSheet.getRange(1, 1, this.rowIndex + 1, 17).setValues(this.buffer);
+};
 
 function updateBalance(balanceMap, settlementSubscriberId, heading) {
     //var balIndex = getBalanceDataIndex(balanceData,month, year);
@@ -42,14 +107,14 @@ function updateBalance(balanceMap, settlementSubscriberId, heading) {
     // var maxRows = balanceSheet.getMaxRows();
     // balanceSheet.getRange(2,balIndex,maxRows).clear();
     //}
-    var rowNo;
+    var rowIndex;
     if (settlementSubscriberId !== undefined) {
-        rowNo = getorSetBalanceSubscriber(balanceSheet, settlementSubscriberId);
-        balanceSheet.getRange(rowNo, balIndex).setValue(balanceMap[settlementSubscriberId].Amount);
+        rowIndex = getorSetBalanceSubscriber(balanceSheet, settlementSubscriberId);
+        balanceSheet.getRange(rowIndex, balIndex).setValue(balanceMap[settlementSubscriberId].Amount);
     } else {
         for (var subscriberId in balanceMap) {
-            rowNo = getorSetBalanceSubscriber(balanceSheet, subscriberId);
-            balanceSheet.getRange(rowNo, balIndex).setValue(balanceMap[subscriberId].Amount);
+            rowIndex = getorSetBalanceSubscriber(balanceSheet, subscriberId);
+            balanceSheet.getRange(rowIndex, balIndex).setValue(balanceMap[subscriberId].Amount);
         }
     }
 }
