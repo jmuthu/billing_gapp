@@ -4,35 +4,29 @@ updateSubscriptionEnd, assert, daysInMonth, getMeterReadingMap,
 sort_unique_date, throwException, incrementDay*/
 "use strict";
 
-function calculateCharges(spreadSheet, pricingMap, settlementSubscriberId,
-    settlementDate, billFrom, billTo) {
-    var subscriberMap = getSubscriberMap(spreadSheet);
-    var subscriptionList = getSubscriptionList(spreadSheet, billFrom, billTo);
-    var buildingMap = getBuildingMap(spreadSheet, billFrom, billTo);
+function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo) {
+    var subscriberMap = getSubscriberMap();
+    var subscriptionList = getSubscriptionList(billFrom, billTo);
+    var buildingMap = getBuildingMap(billFrom, billTo);
     if (settlementSubscriberId !== undefined) {
-        var result = getSubscription(spreadSheet, subscriptionList, buildingMap, settlementSubscriberId,
-            settlementDate);
+        var result = getSubscription(subscriptionList, buildingMap, settlementSubscriberId, settlementDate);
         if (result.SubscriptionList.length > 0) { // Settlement is done much after subscription expires
             addPeriod(subscriptionList, buildingMap);
-            buildPeriod(spreadSheet, result.BuildingMap,
-                subscriptionList, billFrom, billTo);
-            processSubscription(result.SubscriptionList, subscriberMap, pricingMap,
-                result.BuildingMap, billFrom, billTo);
+            buildPeriod(result.BuildingMap, subscriptionList, billFrom, billTo);
+            processSubscription(result.SubscriptionList, subscriberMap, pricingMap, result.BuildingMap, billFrom, billTo);
         }
         var settlementSubscriberMap = {};
         settlementSubscriberMap[settlementSubscriberId] = subscriberMap[settlementSubscriberId];
         return settlementSubscriberMap;
     } else {
         addPeriod(subscriptionList, buildingMap);
-        buildPeriod(spreadSheet, buildingMap, subscriptionList, billFrom, billTo);
-        processSubscription(subscriptionList, subscriberMap, pricingMap,
-            buildingMap, billFrom, billTo);
+        buildPeriod(buildingMap, subscriptionList, billFrom, billTo);
+        processSubscription(subscriptionList, subscriberMap, pricingMap, buildingMap, billFrom, billTo);
         return subscriberMap;
     }
 }
 
-function processSubscription(subscriptionList, subscriberMap, pricingMap,
-    buildingMap, billFrom, billTo) {
+function processSubscription(subscriptionList, subscriberMap, pricingMap, buildingMap, billFrom, billTo) {
     log("Processing totally " + subscriptionList.length + " subscriptions");
     for (var i = 0; i < subscriptionList.length; i++) {
         var subscriber = subscriberMap[subscriptionList[i].SubscriberId];
@@ -41,12 +35,11 @@ function processSubscription(subscriptionList, subscriberMap, pricingMap,
         }
         var pricing = pricingMap[subscriptionList[i].PricingId];
         var building = buildingMap[subscriptionList[i].BuildingId];
-        calculateChargesForSubscriber(subscriptionList[i], subscriber, pricing,
-            building, billFrom, billTo);
+        calculateChargesForSubscriber(subscriptionList[i], subscriber, pricing, building, billFrom, billTo);
     }
 }
 
-function getSubscription(spreadSheet, subscriptionList, buildingMap, settlementSubscriberId, settlementDate) {
+function getSubscription(subscriptionList, buildingMap, settlementSubscriberId, settlementDate) {
     var result = {
         SubscriptionList: [],
         BuildingMap: {}
@@ -54,13 +47,11 @@ function getSubscription(spreadSheet, subscriptionList, buildingMap, settlementS
     for (var i = 0; i < subscriptionList.length; i++) {
         var subscription = subscriptionList[i];
         if (settlementSubscriberId == subscription.SubscriberId) {
-            if (subscription.DateFrom <= settlementDate &&
-                subscription.DateTo > settlementDate) {
-                log("Updating end date to settlement date for Subscription id - " +
-                    subscription.SubscriptionId);
+            if (subscription.DateFrom <= settlementDate && subscription.DateTo > settlementDate) {
+                log("Updating end date to settlement date for Subscription id - " + subscription.SubscriptionId);
                 subscription.DateTo = settlementDate;
                 subscription.BillingEnd = settlementDate;
-                updateSubscriptionEnd(spreadSheet, subscription.Index, settlementDate);
+                updateSubscriptionEnd(subscription.Index, settlementDate);
             }
             result.SubscriptionList.push(subscription);
             result.BuildingMap[subscription.BuildingId] = buildingMap[subscription.BuildingId];
@@ -69,8 +60,7 @@ function getSubscription(spreadSheet, subscriptionList, buildingMap, settlementS
     return result;
 }
 
-function calculateChargesForSubscriber(subscription, subscriber, pricing,
-    building, billFrom, billTo) {
+function calculateChargesForSubscriber(subscription, subscriber, pricing, building, billFrom, billTo) {
     assert(pricing, "pricing", subscription.SubscriptionId);
     assert(subscriber, "subscriber", subscription.SubscriptionId);
     assert(building, "building", subscription.SubscriptionId);
@@ -79,8 +69,7 @@ function calculateChargesForSubscriber(subscription, subscriber, pricing,
     var meterCharge = 0;
     for (var i = 0; i < building.PeriodList.length; i++) {
         var period = building.PeriodList[i];
-        if (subscription.BillingStart <= period.Start &&
-            subscription.BillingEnd >= period.End) {
+        if (subscription.BillingStart <= period.Start && subscription.BillingEnd >= period.End) {
             var price = pricing.PricingPer1;
             if (period.Count == 2) {
                 price = pricing.PricingPer2;
@@ -125,10 +114,7 @@ function getSubscriptionPeriod(subscriptionFrom, subscriptionTo, billFrom, billT
             actualEnd = subscriptionTo;
         }
     }
-    return {
-        BillingStart: actualStart,
-        BillingEnd: actualEnd
-    };
+    return {BillingStart: actualStart, BillingEnd: actualEnd};
 }
 
 function calculateProration(actualStart, actualEnd, billFrom) {
@@ -137,8 +123,8 @@ function calculateProration(actualStart, actualEnd, billFrom) {
     return proration;
 }
 
-function buildPeriod(spreadSheet, buildingMap, subscriptionList, billFrom, billTo) {
-    var meterReadingMap = getMeterReadingMap(spreadSheet, billFrom, billTo);
+function buildPeriod(buildingMap, subscriptionList, billFrom, billTo) {
+    var meterReadingMap = getMeterReadingMap(billFrom, billTo);
     for (var building in buildingMap) {
         var dates = sort_unique_date(buildingMap[building].PeriodList);
         var meterReading = meterReadingMap[building];
@@ -148,8 +134,7 @@ function buildPeriod(spreadSheet, buildingMap, subscriptionList, billFrom, billT
             var end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);
 
-            var count = countSubscription(buildingMap[building].BuildingId,
-                subscriptionList, dates[i], end);
+            var count = countSubscription(buildingMap[building].BuildingId, subscriptionList, dates[i], end);
             var proration = calculateProration(dates[i], end, billFrom);
             var meterValue = 0;
             if (meterReading === undefined) {
@@ -160,18 +145,9 @@ function buildPeriod(spreadSheet, buildingMap, subscriptionList, billFrom, billT
                 meterValue = getMeterForBuildingPeriod(meterReading, dates[i], end);
             }
 
-            result.push({
-                Start: dates[i],
-                End: end,
-                Count: count,
-                Proration: proration,
-                Meter: meterValue
-            });
+            result.push({Start: dates[i], End: end, Count: count, Proration: proration, Meter: meterValue});
 
-            log(dates[i].toDateString() + " - " + end.toDateString() +
-                ", Count : " + count +
-                ", Meter : " + meterValue +
-                ", Proration : " + proration);
+            log(dates[i].toDateString() + " - " + end.toDateString() + ", Count : " + count + ", Meter : " + meterValue + ", Proration : " + proration);
         }
         buildingMap[building].PeriodList = result;
     }
@@ -192,10 +168,13 @@ function getMeterForBuildingPeriod(meterReading, start, end) {
     var result = 0;
     for (var i = 0; i < meterReading.length; i++) {
         if (meterReading[i].Start <= end && meterReading[i].End >= start) {
-            var actualStart = meterReading[i].Start > start ? meterReading[i].Start : start;
-            var actualEnd = meterReading[i].End < end ? meterReading[i].End : end;
-            result += meterReading[i].Value * (actualEnd.getTime() - actualStart.getTime() + 86400000) /
-                (meterReading[i].End.getTime() - meterReading[i].Start.getTime() + 86400000);
+            var actualStart = meterReading[i].Start > start
+                ? meterReading[i].Start
+                : start;
+            var actualEnd = meterReading[i].End < end
+                ? meterReading[i].End
+                : end;
+            result += meterReading[i].Value * (actualEnd.getTime() - actualStart.getTime() + 86400000) / (meterReading[i].End.getTime() - meterReading[i].Start.getTime() + 86400000);
         }
     }
     return result;
@@ -204,9 +183,7 @@ function getMeterForBuildingPeriod(meterReading, start, end) {
 function countSubscription(buildingId, subscriptionList, start, end) {
     var count = 0;
     for (var i = 0; i < subscriptionList.length; i++) {
-        if (buildingId == subscriptionList[i].BuildingId &&
-            subscriptionList[i].BillingStart <= start &&
-            subscriptionList[i].BillingEnd >= end) {
+        if (buildingId == subscriptionList[i].BuildingId && subscriptionList[i].BillingStart <= start && subscriptionList[i].BillingEnd >= end) {
             count++;
         }
     }

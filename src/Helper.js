@@ -1,6 +1,12 @@
 /* jshint -W097 */
-/* globals Logger */
+/* globals Logger, SpreadsheetApp */
 "use strict";
+
+var SpreadsheetRepository = (function() {
+    function SpreadsheetRepository() {}
+    return SpreadsheetRepository;
+}());
+SpreadsheetRepository.spreadSheet = SpreadsheetApp.getActive();
 
 function log(message) {
     //stats.insertRowsBefore(4, 1);
@@ -35,7 +41,6 @@ function daysInMonth(month, year) {
     return new Date(year, month + 1, 0).getDate();
 }
 
-
 function getBalanceDataIndex(balanceData, month, year) {
     var date = new Date(year, month, daysInMonth(month, year), 0, 0, 0, 0);
     var colIndex = -1;
@@ -43,8 +48,7 @@ function getBalanceDataIndex(balanceData, month, year) {
         var header = balanceData[0][i];
         if (header === undefined) {
             break;
-        } else if (Object.prototype.toString.call(header) === "[object Date]" &&
-            header.getTime() == date.getTime()) {
+        } else if (Object.prototype.toString.call(header) === "[object Date]" && header.getTime() == date.getTime()) {
             colIndex = i;
             break;
         }
@@ -67,8 +71,9 @@ function assert(data, type, name) {
 }
 
 function sort_unique_date(arr) {
-    if (arr.length === 0) return arr;
-    arr = arr.sort(function (a, b) {
+    if (arr.length === 0)
+        return arr;
+    arr = arr.sort(function(a, b) {
         return a - b;
     });
     var ret = [arr[0]];

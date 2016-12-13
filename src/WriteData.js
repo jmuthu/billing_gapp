@@ -1,15 +1,16 @@
 /* jshint -W097 */
-/* globals throwException */
+/* globals throwException, SpreadsheetRepository */
 "use strict";
 
-function initializeOutput(spreadSheet, sheetName) {
-    var output = spreadSheet.getSheetByName(sheetName);
+function initializeOutput(sheetName) {
+    var output = SpreadsheetRepository.spreadSheet.getSheetByName(sheetName);
     if (output !== null) {
         throwException("Bill/Settlement Report  '" + sheetName + "' already exists!");
     }
-    output = spreadSheet.insertSheet(sheetName, 0);
+    output = SpreadSheetRepository.spreadSheet.insertSheet(sheetName, 0);
     output.clearContents();
-    output.appendRow(['Bill Id',
+    output.appendRow([
+        'Bill Id',
         'Subscriber Id',
         'Name',
         'Phone',
@@ -30,9 +31,9 @@ function initializeOutput(spreadSheet, sheetName) {
     return output;
 }
 
-function updateBalance(spreadSheet, balanceMap, settlementSubscriberId, heading) {
+function updateBalance(balanceMap, settlementSubscriberId, heading) {
     //var balIndex = getBalanceDataIndex(balanceData,month, year);
-    var balanceSheet = spreadSheet.getSheetByName("Balance");
+    var balanceSheet = SpreadsheetRepository.spreadSheet.getSheetByName("Balance");
     //if (balIndex == -1) {
     balanceSheet.insertColumnAfter(1);
     var balIndex = 2;
@@ -65,10 +66,10 @@ function getorSetBalanceSubscriber(balanceSheet, subscriberId) {
     return i + 1;
 }
 
-function closeAccount(spreadSheet, index) {
-    spreadSheet.getSheetByName("Subscriber").getRange(index, 9).setValue('Closed');
+function closeAccount(index) {
+    SpreadsheetRepository.spreadSheet.getSheetByName("Subscriber").getRange(index, 9).setValue('Closed');
 }
 
-function updateSubscriptionEnd(spreadSheet, index, date) {
-    spreadSheet.getSheetByName("Subscription").getRange(index, 6).setValue(date);
+function updateSubscriptionEnd(index, date) {
+    SpreadsheetRepository.spreadSheet.getSheetByName("Subscription").getRange(index, 6).setValue(date);
 }
