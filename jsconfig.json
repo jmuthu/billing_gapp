@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "outFile": "./built/billing_gapp.js",
+        "removeComments": true
+    },
+    "files": [
+        "src/",
+        "node_modules/@types/"
+    ]
+}

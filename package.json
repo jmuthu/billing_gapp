@@ -1,0 +1,19 @@
+{
+  "name": "billing-gapp",
+  "description": "Subscription billing for renters/leasers",
+  "version": "0.0.1",
+  "devDependencies": {
+    "babel": "^6.5.2",
+    "babel-cli": "^6.18.0"
+  },
+  "scripts": {},
+  "main": "built/billing_gapp.js",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmuthu/billing_gapp.git"
+  },
+  "dependencies": {
+    "@types/google-apps-script": "0.0.10"
+  }
+}

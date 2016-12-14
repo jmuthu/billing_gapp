@@ -1,0 +1,19 @@
+{
+    "version": "0.1.0",
+    "command": "${workspaceRoot}/node_modules/.bin/babel",
+    "isShellCommand": true,
+    "tasks": [
+        {
+            "args": [
+                "src",
+                "--out-file",
+                "./built/billing_gapp.js",
+                "-w"
+            ],
+            "taskName": "watch",
+            "suppressTaskName": true,
+            "isBuildCommand": true,
+            "isWatching": true
+        }
+    ]
+}
