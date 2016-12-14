@@ -1,16 +1,14 @@
 /* jshint -W097 */
 /* globals Logger, SpreadsheetApp */
-"use strict";
+'use strict';
 
-var SpreadsheetRepository = (function() {
-    function SpreadsheetRepository() {}
+var SpreadsheetRepository = (function () {
+    function SpreadsheetRepository() { }
     return SpreadsheetRepository;
-}());
+} ());
 SpreadsheetRepository.spreadSheet = SpreadsheetApp.getActive();
 
 function log(message) {
-    //stats.insertRowsBefore(4, 1);
-    //stats.getRange(4,1).setValue(message);
     Logger.log(message);
 }
 
@@ -44,11 +42,11 @@ function daysInMonth(month, year) {
 function getBalanceDataIndex(balanceData, month, year) {
     var date = new Date(year, month, daysInMonth(month, year), 0, 0, 0, 0);
     var colIndex = -1;
-    for (var i = 1; true; i = i + 1) {
+    for (var i = 1; i < 1000; i = i + 1) {
         var header = balanceData[0][i];
         if (header === undefined) {
             break;
-        } else if (Object.prototype.toString.call(header) === "[object Date]" && header.getTime() == date.getTime()) {
+        } else if (Object.prototype.toString.call(header) === '[object Date]' && header.getTime() == date.getTime()) {
             colIndex = i;
             break;
         }
@@ -56,24 +54,16 @@ function getBalanceDataIndex(balanceData, month, year) {
     return colIndex;
 }
 
-function testCompare() {
-    var d1 = new Date(2016, 10, 11);
-    var d2 = new Date(2016, 10, 11);
-    if (d1 >= d2) {
-        log("true");
-    }
-}
-
 function assert(data, type, name) {
     if (data === undefined) {
-        throwException("Error! Missing " + type + " data for subscription " + name);
+        throwException('Error! Missing ' + type + ' data for subscription ' + name);
     }
 }
 
 function sort_unique_date(arr) {
     if (arr.length === 0)
         return arr;
-    arr = arr.sort(function(a, b) {
+    arr = arr.sort(function (a, b) {
         return a - b;
     });
     var ret = [arr[0]];

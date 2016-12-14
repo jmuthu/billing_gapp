@@ -1,10 +1,10 @@
 /* jshint -W097 */
 /* globals getBalanceDataIndex, throwException, incrementDay, getSubscriptionPeriod,
    SpreadsheetRepository */
-"use strict";
+'use strict';
 
 function getSubscriberMap() {
-    var subscriberData = SpreadsheetRepository.spreadSheet.getSheetByName("Subscriber").getDataRange().getValues();
+    var subscriberData = SpreadsheetRepository.spreadSheet.getSheetByName('Subscriber').getDataRange().getValues();
     var subscriberMap = {};
     for (var i = 1; i < subscriberData.length; i++) {
         var subscriber = {
@@ -27,10 +27,10 @@ function getSubscriberMap() {
 
 function getBalanceMap(subscriberMap, month, year) {
     var balanceMap = {};
-    var balanceData = SpreadsheetRepository.spreadSheet.getSheetByName("Balance").getDataRange().getValues();
+    var balanceData = SpreadsheetRepository.spreadSheet.getSheetByName('Balance').getDataRange().getValues();
     var prevBalIndex = getBalanceDataIndex(balanceData, month - 1, year);
     if (prevBalIndex == -1) {
-        throwException("Error! Missing balance information for " + month + "/" + year);
+        throwException('Error! Missing balance information for ' + month + '/' + year);
     }
 
     for (var i = 1; i < balanceData.length; i++) {
@@ -38,7 +38,7 @@ function getBalanceMap(subscriberMap, month, year) {
             Index: i + 1,
             SubscriberId: balanceData[i][0]
         };
-        if (balanceData[i][prevBalIndex] !== undefined && balanceData[i][prevBalIndex] !== "") {
+        if (balanceData[i][prevBalIndex] !== undefined && balanceData[i][prevBalIndex] !== '') {
             balance.Amount = balanceData[i][prevBalIndex];
         } else {
             balance.Amount = 0;
@@ -59,7 +59,7 @@ function getBalanceMap(subscriberMap, month, year) {
 
 function getBuildingMap(billFrom, billTo) {
     var buildingMap = {};
-    var buildingData = SpreadsheetRepository.spreadSheet.getSheetByName("Building").getDataRange().getValues();
+    var buildingData = SpreadsheetRepository.spreadSheet.getSheetByName('Building').getDataRange().getValues();
     for (var i = 1; i < buildingData.length; i++) {
         var building = {
             BuildingId: buildingData[i][0],
@@ -73,7 +73,7 @@ function getBuildingMap(billFrom, billTo) {
 }
 
 function getMeterReadingMap(billFrom, billTo) {
-    var meterData = SpreadsheetRepository.spreadSheet.getSheetByName("Meter Reading").getDataRange().getValues();
+    var meterData = SpreadsheetRepository.spreadSheet.getSheetByName('Meter Reading').getDataRange().getValues();
     var meterReadingMap = {};
     for (var i = 1; i < meterData.length; i++) {
         var meterReading = {
@@ -94,7 +94,7 @@ function getMeterReadingMap(billFrom, billTo) {
 }
 
 function getARMap(billFrom, billTo) {
-    var arData = SpreadsheetRepository.spreadSheet.getSheetByName("AR").getDataRange().getValues();
+    var arData = SpreadsheetRepository.spreadSheet.getSheetByName('AR').getDataRange().getValues();
     var arMap = {};
     for (var i = 1; i < arData.length; i++) {
         var ar = {
@@ -116,7 +116,7 @@ function getARMap(billFrom, billTo) {
 }
 
 function getPricingMap(billFrom, billTo) {
-    var pricingData = SpreadsheetRepository.spreadSheet.getSheetByName("Pricing").getDataRange().getValues();
+    var pricingData = SpreadsheetRepository.spreadSheet.getSheetByName('Pricing').getDataRange().getValues();
     var pricingMap = {};
     for (var i = 1; i < pricingData.length; i++) {
         var pricing = {
@@ -139,7 +139,7 @@ function getPricingMap(billFrom, billTo) {
 }
 
 function getSubscriptionList(billFrom, billTo) {
-    var subscriptionData = SpreadsheetRepository.spreadSheet.getSheetByName("Subscription").getDataRange().getValues();
+    var subscriptionData = SpreadsheetRepository.spreadSheet.getSheetByName('Subscription').getDataRange().getValues();
     var subscriptionList = [];
     for (var i = 1; i < subscriptionData.length; i++) {
         var subscription = {

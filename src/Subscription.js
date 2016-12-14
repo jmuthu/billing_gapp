@@ -2,7 +2,7 @@
 /* globals getSubscriberMap, getSubscriptionList, getBuildingMap, log,
 updateSubscriptionEnd, assert, daysInMonth, getMeterReadingMap,
 sort_unique_date, throwException, incrementDay*/
-"use strict";
+'use strict';
 
 function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo, billReport) {
     var subscriberMap = getSubscriberMap();
@@ -27,7 +27,7 @@ function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, bi
 }
 
 function processSubscription(subscriptionList, subscriberMap, pricingMap, buildingMap, billFrom, billTo) {
-    log("Processing totally " + subscriptionList.length + " subscriptions");
+    log('Processing totally ' + subscriptionList.length + ' subscriptions');
     for (var i = 0; i < subscriptionList.length; i++) {
         var subscriber = subscriberMap[subscriptionList[i].SubscriberId];
         if (subscriber.Status == 'Closed') {
@@ -48,7 +48,7 @@ function getSubscription(subscriptionList, buildingMap, settlementSubscriberId, 
         var subscription = subscriptionList[i];
         if (settlementSubscriberId == subscription.SubscriberId) {
             if (subscription.DateFrom <= settlementDate && subscription.DateTo > settlementDate) {
-                log("Updating end date to settlement date for Subscription id - " + subscription.SubscriptionId);
+                log('Updating end date to settlement date for Subscription id - ' + subscription.SubscriptionId);
                 subscription.DateTo = settlementDate;
                 subscription.BillingEnd = settlementDate;
                 updateSubscriptionEnd(subscription.Index, settlementDate);
@@ -61,9 +61,9 @@ function getSubscription(subscriptionList, buildingMap, settlementSubscriberId, 
 }
 
 function calculateChargesForSubscriber(subscription, subscriber, pricing, building, billFrom, billTo) {
-    assert(pricing, "pricing", subscription.SubscriptionId);
-    assert(subscriber, "subscriber", subscription.SubscriptionId);
-    assert(building, "building", subscription.SubscriptionId);
+    assert(pricing, 'pricing', subscription.SubscriptionId);
+    assert(subscriber, 'subscriber', subscription.SubscriptionId);
+    assert(building, 'building', subscription.SubscriptionId);
 
     var monthlyRental = 0;
     var meterCharge = 0;
@@ -142,7 +142,7 @@ function buildPeriod(buildingMap, subscriptionList, billFrom, billTo, billReport
             var meterValue = 0;
             if (meterReading === undefined) {
                 if (count > 0) {
-                    throwException("Error - Missing meter reading for building id - " + buildingId + "!");
+                    throwException('Error - Missing meter reading for building id - ' + buildingId + '!');
                 }
             } else {
                 meterValue = getMeterForBuildingPeriod(meterReading, dates[i], end);
