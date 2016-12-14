@@ -8,7 +8,10 @@
                 "src",
                 "--out-file",
                 "./built/billing_gapp.js",
-                "-w"
+                "--presets",
+                "es3",
+                "--plugins",
+                "remove-comments"
             ],
             "taskName": "watch",
             "suppressTaskName": true,
