@@ -114,7 +114,10 @@ function getSubscriptionPeriod(subscriptionFrom, subscriptionTo, billFrom, billT
             actualEnd = subscriptionTo;
         }
     }
-    return {BillingStart: actualStart, BillingEnd: actualEnd};
+    return {
+        BillingStart: actualStart,
+        BillingEnd: actualEnd
+    };
 }
 
 function calculateProration(actualStart, actualEnd, billFrom) {
@@ -145,7 +148,13 @@ function buildPeriod(buildingMap, subscriptionList, billFrom, billTo) {
                 meterValue = getMeterForBuildingPeriod(meterReading, dates[i], end);
             }
 
-            result.push({Start: dates[i], End: end, Count: count, Proration: proration, Meter: meterValue});
+            result.push({
+                Start: dates[i],
+                End: end,
+                Count: count,
+                Proration: proration,
+                Meter: meterValue
+            });
 
             log(dates[i].toDateString() + " - " + end.toDateString() + ", Count : " + count + ", Meter : " + meterValue + ", Proration : " + proration);
         }
@@ -168,12 +177,10 @@ function getMeterForBuildingPeriod(meterReading, start, end) {
     var result = 0;
     for (var i = 0; i < meterReading.length; i++) {
         if (meterReading[i].Start <= end && meterReading[i].End >= start) {
-            var actualStart = meterReading[i].Start > start
-                ? meterReading[i].Start
-                : start;
-            var actualEnd = meterReading[i].End < end
-                ? meterReading[i].End
-                : end;
+            var actualStart = meterReading[i].Start > start ? meterReading[i].Start :
+                start;
+            var actualEnd = meterReading[i].End < end ? meterReading[i].End :
+                end;
             result += meterReading[i].Value * (actualEnd.getTime() - actualStart.getTime() + 86400000) / (meterReading[i].End.getTime() - meterReading[i].Start.getTime() + 86400000);
         }
     }

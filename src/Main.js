@@ -1,7 +1,8 @@
 /* jshint -W097 */
 /* globals getMonthFromString, LockService, log, SpreadsheetApp, daysInMonth,
    getPricingMap, getBalanceMap, calculateCharges, getARMap, initializeOutput,
-   closeAccount, Logger, updateBalance, throwException
+   closeAccount, Logger, updateBalance, throwException, BillReport,
+   SpreadsheetRepository
   */
 "use strict";
 
@@ -61,7 +62,7 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
     var billId = 1;
     for (var subscriberId in subscriberMap) {
         var subscriber = subscriberMap[subscriberId];
-        if (subscriber.Status == 'Closed') {
+        if (subscriber.Status != 'Active') {
             continue;
         }
         var balance = balanceMap[subscriberId];
@@ -113,5 +114,9 @@ function processAR(ar, pricing, balance) {
     } else if (firstPaymentDay > 10) {
         lateFee = pricing.LatePayment10_15days;
     }
-    return {Payments: payments, LateFee: lateFee, Adjustments: adjustments};
+    return {
+        Payments: payments,
+        LateFee: lateFee,
+        Adjustments: adjustments
+    };
 }
