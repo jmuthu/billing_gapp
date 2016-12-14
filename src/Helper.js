@@ -1,4 +1,3 @@
-/* jshint -W097 */
 /* globals Logger, SpreadsheetApp */
 'use strict';
 

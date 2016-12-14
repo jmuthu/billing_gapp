@@ -1,10 +1,8 @@
-/* jshint -W097 */
 /* globals getMonthFromString, LockService, log, SpreadsheetApp, daysInMonth,
    getPricingMap, getBalanceMap, calculateCharges, getARMap, initializeOutput,
    closeAccount, Logger, updateBalance, throwException, BillReport,
    SpreadsheetRepository
   */
-'use strict';
 
 function monthlyBilling() {
     var inputSheet = SpreadsheetRepository.spreadSheet.getSheetByName('Generate Bill');

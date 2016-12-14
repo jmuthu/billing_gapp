@@ -1,6 +1,4 @@
-/* jshint -W097 */
 /* globals throwException, SpreadsheetRepository */
-'use strict';
 
 function BillReport(name) {
     if (SpreadsheetRepository.spreadSheet.getSheetByName(name) !== null) {
@@ -43,11 +41,11 @@ function BillReport(name) {
 BillReport.prototype.addBuildingPeriod = function (buildingId, period) {
     this.buildingPeriodIndex++;
     this.buildingPeriodBuffer[this.buildingPeriodIndex] = [
-        buildingId, 
-        period.Start, 
+        buildingId,
+        period.Start,
         period.End,
-        period.Proration, 
-        period.Count, 
+        period.Proration,
+        period.Count,
         Math.round(period.Meter)];
 };
 

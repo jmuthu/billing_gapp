@@ -1,8 +1,6 @@
-/* jshint -W097 */
 /* globals getSubscriberMap, getSubscriptionList, getBuildingMap, log,
 updateSubscriptionEnd, assert, daysInMonth, getMeterReadingMap,
-sort_unique_date, throwException, incrementDay*/
-'use strict';
+sort_unique_date, throwException, incrementDay */
 
 function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo, billReport) {
     var subscriberMap = getSubscriberMap();
@@ -132,7 +130,7 @@ function buildPeriod(buildingMap, subscriptionList, billFrom, billTo, billReport
         var dates = sort_unique_date(buildingMap[buildingId].PeriodList);
         var meterReading = meterReadingMap[buildingId];
         var result = [];
-        
+
         for (var i = 0; i < dates.length - 1; i++) {
             var end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);

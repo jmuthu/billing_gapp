@@ -1,7 +1,5 @@
-/* jshint -W097 */
 /* globals getBalanceDataIndex, throwException, incrementDay, getSubscriptionPeriod,
    SpreadsheetRepository */
-'use strict';
 
 function getSubscriberMap() {
     var subscriberData = SpreadsheetRepository.spreadSheet.getSheetByName('Subscriber').getDataRange().getValues();
