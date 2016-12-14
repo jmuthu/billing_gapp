@@ -1,7 +1,7 @@
 /* jshint -W097 */
-/* globals getBalanceDataIndex, throwException, incrementDay, getSubscriptionPeriod */
+/* globals getBalanceDataIndex, throwException, incrementDay, getSubscriptionPeriod,
+   SpreadsheetRepository */
 "use strict";
-
 
 function getSubscriberMap() {
     var subscriberData = SpreadsheetRepository.spreadSheet.getSheetByName("Subscriber").getDataRange().getValues();
@@ -34,18 +34,21 @@ function getBalanceMap(subscriberMap, month, year) {
     }
 
     for (var i = 1; i < balanceData.length; i++) {
-        if (balanceData[i][prevBalIndex] !== undefined &&
-            balanceData[i][prevBalIndex] !== "") {
-            var balance = {
-                SubscriberId: balanceData[i][0],
-                Amount: balanceData[i][prevBalIndex]
-            };
-            balanceMap[balance.SubscriberId] = balance;
+        var balance = {
+            Index: i + 1,
+            SubscriberId: balanceData[i][0]
+        };
+        if (balanceData[i][prevBalIndex] !== undefined && balanceData[i][prevBalIndex] !== "") {
+            balance.Amount = balanceData[i][prevBalIndex];
+        } else {
+            balance.Amount = 0;
         }
+        balanceMap[balance.SubscriberId] = balance;
     }
     for (var subscriberId in subscriberMap) {
         if (balanceMap[subscriberId] === undefined) {
             balanceMap[subscriberId] = {
+                Index: -1,
                 SubscriberId: subscriberId,
                 Amount: 0
             };
@@ -79,8 +82,7 @@ function getMeterReadingMap(billFrom, billTo) {
             BuildingId: meterData[i][2],
             Value: meterData[i][5]
         };
-        if (meterReading.Start <= billTo &&
-            billFrom <= meterReading.End) {
+        if (meterReading.Start <= billTo && billFrom <= meterReading.End) {
             if (meterReadingMap[meterReading.BuildingId]) {
                 meterReadingMap[meterReading.BuildingId].push(meterReading);
             } else {
@@ -113,7 +115,7 @@ function getARMap(billFrom, billTo) {
     return arMap;
 }
 
-function getPricingMap( billFrom, billTo) {
+function getPricingMap(billFrom, billTo) {
     var pricingData = SpreadsheetRepository.spreadSheet.getSheetByName("Pricing").getDataRange().getValues();
     var pricingMap = {};
     for (var i = 1; i < pricingData.length; i++) {
@@ -151,10 +153,7 @@ function getSubscriptionList(billFrom, billTo) {
         };
 
         if (subscription.DateFrom <= billTo && billFrom <= subscription.DateTo) {
-            var result = getSubscriptionPeriod(subscription.DateFrom,
-                subscription.DateTo,
-                billFrom,
-                billTo);
+            var result = getSubscriptionPeriod(subscription.DateFrom, subscription.DateTo, billFrom, billTo);
             subscription.BillingStart = result.BillingStart;
             subscription.BillingEnd = result.BillingEnd;
             subscriptionList.push(subscription);

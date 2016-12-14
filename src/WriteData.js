@@ -30,7 +30,7 @@ function BillReport(name) {
     ];
 }
 
-BillReport.prototype.addBill = function(billId, subscriber, previousDue, arResult, advance, totalDue) {
+BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResult, advance, totalDue) {
     this.rowIndex++;
     var billSummary = [
         billId,
@@ -73,8 +73,8 @@ BillReport.prototype.addBill = function(billId, subscriber, previousDue, arResul
                 '',
                 '',
                 '',
-                '',
                 charge.Total,
+                '',
                 '',
                 '',
                 '',
@@ -91,44 +91,36 @@ BillReport.prototype.addBill = function(billId, subscriber, previousDue, arResul
     }
 };
 
-BillReport.prototype.close = function() {
+BillReport.prototype.close = function () {
     var billSheet = SpreadsheetRepository.spreadSheet.insertSheet(this.name, 0);
     billSheet.getRange(1, 1, this.rowIndex + 1, 17).setValues(this.buffer);
 };
 
 function updateBalance(balanceMap, settlementSubscriberId, heading) {
-    //var balIndex = getBalanceDataIndex(balanceData,month, year);
     var balanceSheet = SpreadsheetRepository.spreadSheet.getSheetByName("Balance");
-    //if (balIndex == -1) {
     balanceSheet.insertColumnAfter(1);
-    var balIndex = 2;
-    balanceSheet.getRange(1, balIndex).setValue(heading);
-    // } else {
-    // var maxRows = balanceSheet.getMaxRows();
-    // balanceSheet.getRange(2,balIndex,maxRows).clear();
-    //}
-    var rowIndex;
-    if (settlementSubscriberId !== undefined) {
-        rowIndex = getorSetBalanceSubscriber(balanceSheet, settlementSubscriberId);
-        balanceSheet.getRange(rowIndex, balIndex).setValue(balanceMap[settlementSubscriberId].Amount);
-    } else {
-        for (var subscriberId in balanceMap) {
-            rowIndex = getorSetBalanceSubscriber(balanceSheet, subscriberId);
-            balanceSheet.getRange(rowIndex, balIndex).setValue(balanceMap[subscriberId].Amount);
-        }
-    }
-}
+    var maxRows = balanceSheet.getLastRow();
 
-function getorSetBalanceSubscriber(balanceSheet, subscriberId) {
-    var balanceData = balanceSheet.getDataRange().getValues();
-    var i = 1;
-    for (; i < balanceData.length; i++) {
-        if (balanceData[i][0] == subscriberId) {
-            return i + 1;
+    if (settlementSubscriberId !== undefined) {
+        var rowIndex = balanceMap[settlementSubscriberId].Index == -1 ?
+            ++maxRows : balanceMap[settlementSubscriberId].Index;
+        balanceSheet.getRange(1, 2).setValue(heading);
+        balanceSheet.getRange(rowIndex, 1, 1, 2).setValues([
+            [settlementSubscriberId, balanceMap[settlementSubscriberId].Amount]]);
+    } else {
+        var values = [];
+        values[0] = ["Contact Id", heading];
+
+        for (var subscriberId in balanceMap) {
+            if (balanceMap[subscriberId].Index === -1) {
+                values[maxRows] = [subscriberId, balanceMap[subscriberId].Amount];
+                maxRows++;
+            } else {
+                values[balanceMap[subscriberId].Index - 1] = [subscriberId, balanceMap[subscriberId].Amount];
+            }
         }
+        balanceSheet.getRange(1, 1, maxRows, 2).setValues(values);
     }
-    balanceSheet.getRange(i + 1, 1).setValue(subscriberId);
-    return i + 1;
 }
 
 function closeAccount(index) {
