@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "outFile":"./built/code.js",
+        "allowJs": true,
+        "removeComments": true
+    },
+    "include": [
+        "experimental/**/*"
+    ],
+    "atom": {
+        "formatOnSave": true
+    }
+}
