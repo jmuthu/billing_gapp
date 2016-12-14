@@ -10,8 +10,8 @@ function BillReport(name) {
     this.buffer = [];
     this.rowIndex = 0;
     this.buffer[this.rowIndex] = [
-        'Bill Id',
-        'Subscriber Id',
+        'Bill ID',
+        'Subscriber ID',
         'Name',
         'Phone',
         'Total Due =',
@@ -28,7 +28,28 @@ function BillReport(name) {
         'Monthly rental',
         'Meter Charges'
     ];
+    this.buildingPeriodIndex = 0;
+    this.buildingPeriodBuffer = [];
+    this.buildingPeriodBuffer[this.buildingPeriodIndex] = [
+        'Building ID',
+        'Start Date',
+        'End Date',
+        'Proration',
+        'Subscriber Count',
+        'Meter value'
+    ];
 }
+
+BillReport.prototype.addBuildingPeriod = function (buildingId, period) {
+    this.buildingPeriodIndex++;
+    this.buildingPeriodBuffer[this.buildingPeriodIndex] = [
+        buildingId, 
+        period.Start, 
+        period.End,
+        period.Proration, 
+        period.Count, 
+        Math.round(period.Meter)];
+};
 
 BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResult, advance, totalDue) {
     this.rowIndex++;
@@ -94,6 +115,7 @@ BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResu
 BillReport.prototype.close = function () {
     var billSheet = SpreadsheetRepository.spreadSheet.insertSheet(this.name, 0);
     billSheet.getRange(1, 1, this.rowIndex + 1, 17).setValues(this.buffer);
+    billSheet.getRange(1, 19, this.buildingPeriodIndex + 1, 6).setValues(this.buildingPeriodBuffer);
 };
 
 function updateBalance(balanceMap, settlementSubscriberId, heading) {
@@ -109,7 +131,7 @@ function updateBalance(balanceMap, settlementSubscriberId, heading) {
             [settlementSubscriberId, balanceMap[settlementSubscriberId].Amount]]);
     } else {
         var values = [];
-        values[0] = ["Contact Id", heading];
+        values[0] = ["Contact ID", heading];
 
         for (var subscriberId in balanceMap) {
             if (balanceMap[subscriberId].Index === -1) {

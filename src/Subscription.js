@@ -4,7 +4,7 @@ updateSubscriptionEnd, assert, daysInMonth, getMeterReadingMap,
 sort_unique_date, throwException, incrementDay*/
 "use strict";
 
-function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo) {
+function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo, billReport) {
     var subscriberMap = getSubscriberMap();
     var subscriptionList = getSubscriptionList(billFrom, billTo);
     var buildingMap = getBuildingMap(billFrom, billTo);
@@ -12,7 +12,7 @@ function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, bi
         var result = getSubscription(subscriptionList, buildingMap, settlementSubscriberId, settlementDate);
         if (result.SubscriptionList.length > 0) { // Settlement is done much after subscription expires
             addPeriod(subscriptionList, buildingMap);
-            buildPeriod(result.BuildingMap, subscriptionList, billFrom, billTo);
+            buildPeriod(result.BuildingMap, subscriptionList, billFrom, billTo, billReport);
             processSubscription(result.SubscriptionList, subscriberMap, pricingMap, result.BuildingMap, billFrom, billTo);
         }
         var settlementSubscriberMap = {};
@@ -20,7 +20,7 @@ function calculateCharges(pricingMap, settlementSubscriberId, settlementDate, bi
         return settlementSubscriberMap;
     } else {
         addPeriod(subscriptionList, buildingMap);
-        buildPeriod(buildingMap, subscriptionList, billFrom, billTo);
+        buildPeriod(buildingMap, subscriptionList, billFrom, billTo, billReport);
         processSubscription(subscriptionList, subscriberMap, pricingMap, buildingMap, billFrom, billTo);
         return subscriberMap;
     }
@@ -126,39 +126,38 @@ function calculateProration(actualStart, actualEnd, billFrom) {
     return proration;
 }
 
-function buildPeriod(buildingMap, subscriptionList, billFrom, billTo) {
+function buildPeriod(buildingMap, subscriptionList, billFrom, billTo, billReport) {
     var meterReadingMap = getMeterReadingMap(billFrom, billTo);
-    for (var building in buildingMap) {
-        var dates = sort_unique_date(buildingMap[building].PeriodList);
-        var meterReading = meterReadingMap[building];
+    for (var buildingId in buildingMap) {
+        var dates = sort_unique_date(buildingMap[buildingId].PeriodList);
+        var meterReading = meterReadingMap[buildingId];
         var result = [];
-        log("Period list for building id - " + building);
+        
         for (var i = 0; i < dates.length - 1; i++) {
             var end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);
 
-            var count = countSubscription(buildingMap[building].BuildingId, subscriptionList, dates[i], end);
+            var count = countSubscription(buildingId, subscriptionList, dates[i], end);
             var proration = calculateProration(dates[i], end, billFrom);
             var meterValue = 0;
             if (meterReading === undefined) {
                 if (count > 0) {
-                    throwException("Error - Missing meter reading for building id - " + building + "!");
+                    throwException("Error - Missing meter reading for building id - " + buildingId + "!");
                 }
             } else {
                 meterValue = getMeterForBuildingPeriod(meterReading, dates[i], end);
             }
-
-            result.push({
+            var period = {
                 Start: dates[i],
                 End: end,
                 Count: count,
                 Proration: proration,
                 Meter: meterValue
-            });
-
-            log(dates[i].toDateString() + " - " + end.toDateString() + ", Count : " + count + ", Meter : " + meterValue + ", Proration : " + proration);
+            };
+            result.push(period);
+            billReport.addBuildingPeriod(buildingId, period);
         }
-        buildingMap[building].PeriodList = result;
+        buildingMap[buildingId].PeriodList = result;
     }
 }
 

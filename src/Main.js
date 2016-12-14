@@ -47,17 +47,19 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
         // You can still run on the last day of month
         throwException("Cannot run billing for periods ending in future! " + billTo.toDateString() + " is in future");
     }
-    var pricingMap = getPricingMap(billFrom, billTo);
-    var subscriberMap = calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo);
-    var balanceMap = getBalanceMap(subscriberMap, month, year);
-    var arMap = getARMap(billFrom, billTo);
-
+   
     var sheetName = "Bill - " + (month + 1) + "/" + year;
     if (settlementSubscriberId !== undefined) {
         sheetName = "FS - " + settlementSubscriberId;
     }
 
     var billReport = new BillReport(sheetName);
+
+    var pricingMap = getPricingMap(billFrom, billTo);
+    var subscriberMap = calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo, billReport);
+    var balanceMap = getBalanceMap(subscriberMap, month, year);
+    var arMap = getARMap(billFrom, billTo);
+
 
     var billId = 1;
     for (var subscriberId in subscriberMap) {
