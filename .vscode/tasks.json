@@ -9,7 +9,7 @@
                 "--out-file",
                 "./built/billing_gapp.js",
                 "--presets",
-                "es3",
+                "es2015",
                 "--plugins",
                 "remove-comments"
             ],
