@@ -13,14 +13,13 @@ function BillReport(name) {
         'Name',
         'Phone',
         'Total Due =',
-        'Previous Due',
-        '- Payment',
-        '+ Late fees',
+        'Previous Balance',
+        '- Payments Received',
         '- Adjustments',
         '- Advance',
-        '+ Total Charges',
-        'Building Type',
-        'Building Id',
+        '+ Late fees',
+        '+ Current Charges',
+        'Building ID',
         'Billing Start',
         'Billing End',
         'Monthly rental',
@@ -59,16 +58,15 @@ BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResu
         totalDue,
         previousDue,
         arResult.Payments,
-        arResult.LateFee,
         arResult.Adjustments,
         advance,
+        arResult.LateFee,
         subscriber.TotalCharges
     ];
     var charge;
     if (subscriber.ChargeList.length == 1) {
         charge = subscriber.ChargeList[0];
         this.buffer[this.rowIndex] = billSummary.concat([
-            charge.BuildingType,
             charge.BuildingId,
             charge.Start,
             charge.End,
@@ -77,7 +75,6 @@ BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResu
         ]);
     } else {
         this.buffer[this.rowIndex] = billSummary.concat([
-            '',
             '',
             '',
             '',
@@ -92,14 +89,13 @@ BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResu
                 '',
                 '',
                 '',
+                '',
+                '',
+                '',
+                '',
+                '',
+                '',
                 charge.Total,
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                charge.BuildingType,
                 charge.BuildingId,
                 charge.Start,
                 charge.End,
@@ -112,7 +108,7 @@ BillReport.prototype.addBill = function (billId, subscriber, previousDue, arResu
 
 BillReport.prototype.close = function () {
     var billSheet = SpreadsheetRepository.spreadSheet.insertSheet(this.name, 0);
-    billSheet.getRange(1, 1, this.rowIndex + 1, 17).setValues(this.buffer);
+    billSheet.getRange(1, 1, this.rowIndex + 1, 16).setValues(this.buffer);
     billSheet.getRange(1, 19, this.buildingPeriodIndex + 1, 6).setValues(this.buildingPeriodBuffer);
 };
 
@@ -129,7 +125,7 @@ function updateBalance(balanceMap, settlementSubscriberId, heading) {
             [settlementSubscriberId, balanceMap[settlementSubscriberId].Amount]]);
     } else {
         var values = [];
-        values[0] = ['Contact ID', heading];
+        values[0] = ['Subscriber ID', heading];
 
         for (var subscriberId in balanceMap) {
             if (balanceMap[subscriberId].Index === -1) {
