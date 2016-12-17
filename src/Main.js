@@ -10,19 +10,9 @@ function monthlyBilling() {
     var month = getMonthFromString(monthString);
     var year = inputSheet.getRange(2, 2).getValue();
 
-    var lock = LockService.getScriptLock();
-    var success = lock.tryLock(10000);
-    if (!success) {
-        log('Could not obtain lock after 10 seconds.');
-        return;
-    }
-
     log('Billing started for ' + monthString + ', ' + year);
     generateBill(undefined, undefined, month, year);
     log('Billing ended for ' + monthString + ', ' + year);
-
-    SpreadsheetApp.flush();
-    lock.releaseLock();
 }
 
 function generateFinalSettlement() {
@@ -36,7 +26,23 @@ function generateFinalSettlement() {
     log('Settlement ended for ' + subscriberId);
 }
 
+function getLock() {
+    var lock = LockService.getScriptLock();
+    var success = lock.tryLock(10000);
+    if (!success) {
+        throwException('Could not obtain lock for script even after 10 seconds.');
+        return;
+    }
+    return lock;
+}
+
+function releaseLock(lock) {
+    SpreadsheetApp.flush();
+    lock.releaseLock();
+}
+
 function generateBill(settlementSubscriberId, settlementDate, month, year) {
+    var lock = getLock();
     var billFrom = new Date(year, month, 1, 0, 0, 0, 0);
     var billTo = new Date(year, month, daysInMonth(month, year), 0, 0, 0, 0);
     var date = new Date();
@@ -86,6 +92,7 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
     }
     updateBalance(balanceMap, settlementSubscriberId, heading);
     billReport.close();
+    releaseLock(lock);
 }
 
 function processAR(ar, pricing, balance) {
