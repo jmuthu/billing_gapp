@@ -1,7 +1,7 @@
 /* globals getBalanceDataIndex, throwException, incrementDay, getSubscriptionPeriod,
    SpreadsheetRepository */
 
-function getSubscriberMap() {
+function getSubscriberMap(pricingMap) {
     var subscriberData = SpreadsheetRepository.spreadSheet.getSheetByName('Subscriber').getDataRange().getValues();
     var subscriberMap = {};
     for (var i = 1; i < subscriberData.length; i++) {
@@ -14,10 +14,14 @@ function getSubscriberMap() {
             Organization: subscriberData[i][4],
             Advance: subscriberData[i][7],
             Status: subscriberData[i][8],
-            LateFeePricingId: subscriberData[i][9],
             ChargeList: [],
             TotalCharges: 0
         };
+        subscriber.LateFeePricing = pricingMap[subscriberData[i][9]];
+        if (subscriberData[i][9] && subscriberData[i][9] !== '' &&
+            subscriber.LateFeePricing === undefined) {
+            throwException('Error! Invalid late fee pricing configuration for ' + subscriber.SubscriberId);
+        }
         subscriberMap[subscriber.SubscriberId] = subscriber;
     }
     return subscriberMap;
@@ -136,7 +140,7 @@ function getPricingMap(billFrom, billTo) {
     return pricingMap;
 }
 
-function getSubscriptionList(billFrom, billTo) {
+function getSubscriptionList(pricingMap, billFrom, billTo) {
     var subscriptionData = SpreadsheetRepository.spreadSheet.getSheetByName('Subscription').getDataRange().getValues();
     var subscriptionList = [];
     for (var i = 1; i < subscriptionData.length; i++) {
@@ -144,7 +148,6 @@ function getSubscriptionList(billFrom, billTo) {
             Index: i + 1,
             SubscriptionId: subscriptionData[i][0],
             SubscriberId: subscriptionData[i][1],
-            PricingId: subscriptionData[i][2],
             BuildingId: subscriptionData[i][3],
             DateFrom: subscriptionData[i][4],
             DateTo: subscriptionData[i][5]
@@ -154,6 +157,10 @@ function getSubscriptionList(billFrom, billTo) {
             var result = getSubscriptionPeriod(subscription.DateFrom, subscription.DateTo, billFrom, billTo);
             subscription.BillingStart = result.BillingStart;
             subscription.BillingEnd = result.BillingEnd;
+            subscription.Pricing = pricingMap[subscriptionData[i][2]];
+            if (subscription.Pricing === undefined) {
+                throwException('Error! Invalid subscription pricing configuration for ' + subscription.SubscriptionId);
+            }
             subscriptionList.push(subscription);
         }
     }

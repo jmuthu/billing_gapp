@@ -1,5 +1,5 @@
 /* globals getMonthFromString, LockService, log, SpreadsheetApp, daysInMonth,
-   getPricingMap, getBalanceMap, calculateCharges, getARMap, initializeOutput,
+   getBalanceMap, calculateCharges, getARMap, initializeOutput,
    closeAccount, Logger, updateBalance, throwException, BillReport,
    SpreadsheetRepository
   */
@@ -53,8 +53,7 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
 
     var billReport = new BillReport(sheetName);
 
-    var pricingMap = getPricingMap(billFrom, billTo);
-    var subscriberMap = calculateCharges(pricingMap, settlementSubscriberId, settlementDate, billFrom, billTo, billReport);
+    var subscriberMap = calculateCharges(settlementSubscriberId, settlementDate, billFrom, billTo, billReport);
     var balanceMap = getBalanceMap(subscriberMap, month, year);
     var arMap = getARMap(billFrom, billTo);
 
@@ -67,7 +66,7 @@ function generateBill(settlementSubscriberId, settlementDate, month, year) {
         }
         var balance = balanceMap[subscriberId];
 
-        var arResult = processAR(arMap[subscriberId], pricingMap[subscriber.LateFeePricingId], balance.Amount);
+        var arResult = processAR(arMap[subscriberId], subscriber.LateFeePricing, balance.Amount);
         var totalDue = subscriber.TotalCharges + balance.Amount - arResult.Payments + arResult.LateFee - arResult.Adjustments;
         var advance = 0;
         if (settlementSubscriberId !== undefined && subscriberId == settlementSubscriberId) {
