@@ -6,7 +6,11 @@
     },
     "files": [
         "src/",
-        "experimental/",
-        "node_modules/@types/"
-    ]
+        "experimental/"
+    ],
+    "typeAcquisition": {
+        "include": [
+            "google-apps-script"
+        ]
+    }
 }

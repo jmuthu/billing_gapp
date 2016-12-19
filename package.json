@@ -19,8 +19,5 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/jmuthu/billing_gapp.git"
-  },
-  "dependencies": {
-    "@types/google-apps-script": "0.0.10"
   }
 }
