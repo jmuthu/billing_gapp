@@ -1,5 +1,11 @@
 module.exports = {
-
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
     "env": {
         "browser": true
     },
@@ -22,5 +28,8 @@ module.exports = {
             "error",
             "always"
         ]
+    },
+    "globals": {
+        "SpreadsheetApp": true,
     }
 };

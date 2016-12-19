@@ -5,18 +5,39 @@
     "tasks": [
         {
             "args": [
+                "experimental",
+                "--ignore",
+                "babelHelpers.js",
+                "--out-file",
+                "./built/billing_gapp_es6.js",
+                "--presets",
+                "es2015",
+                "--plugins",
+                "remove-comments",
+                "--plugins",
+                "external-helpers,transform-remove-strict-mode",
+                "--generatorOpts",
+                "quotes:single"
+            ],
+            "taskName": "build-es6",
+            "suppressTaskName": true,
+            "isBuildCommand": true,
+            "isWatching": false
+        },
+        {
+            "args": [
                 "src",
                 "--out-file",
-                "./built/billing_gapp.js",
+                "./built/billing_gapp_es3.js",
                 "--presets",
                 "es2015",
                 "--plugins",
                 "remove-comments"
             ],
-            "taskName": "watch",
+            "taskName": "build-es3",
             "suppressTaskName": true,
             "isBuildCommand": true,
-            "isWatching": true
+            "isWatching": false
         }
     ]
 }

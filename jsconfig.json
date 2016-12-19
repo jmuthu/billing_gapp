@@ -6,6 +6,7 @@
     },
     "files": [
         "src/",
+        "experimental/",
         "node_modules/@types/"
     ]
 }
