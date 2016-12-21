@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css" />
+<html>
+
+<head>
+    <base target="_top">
+</head>
+
+<body>
+    <div class="block form-group">
+        <label for="subscriber">Select Subscriber</label>
+        <select id="subscriber">
+         <? var data = SpreadsheetApp
+           .getActive()
+           .getSheetByName('Subscriber')
+           .getDataRange()
+           .getValues(); 
+           for (var i = 1; i < data.length; i++) {?>
+        <option><?= data[i][0] ?></option>
+        <? } ?>
+       </select>
+    </div>
+    <br/>
+    <label>Select day in current month</label>
+    <br/>
+    <select id="day">
+        <? for (var i = 1; i <= 31; i++) { ?>
+        <option><?= i ?></option>
+        <? } ?>
+    </select>
+    <span>
+    <?= "/" + (new Date().getMonth()+1) + "/" + new Date().getYear(); ?></span>
+
+    <br/>
+    <div id="error" class="error"></div>
+    <br/>
+    <input type="button" value="Run" class="action" onclick="handleSubmit()" />
+<input type="button" value="Cancel" onclick="google.script.host.close()" />
+
+<script>
+                 function handleSubmit() {
+                     var subscriberElement = document.getElementById('subscriber');
+                     var dayElement = document.getElementById('day');
+                     var subscriberId = subscriberElement.options[subscriberElement.selectedIndex].text;
+                     var settlementDay = parseInt(dayElement.options[dayElement.selectedIndex].text);
+
+                     google.script.run.withFailureHandler(onFailure)
+                         .withSuccessHandler(google.script.host.close)
+                         .generateFinalSettlement(subscriberId, settlementDay);
+                     var div = document.getElementById('error');
+                     div.innerHTML = "Running...";
+                 }
+
+                 function onFailure(error) {
+                     var div = document.getElementById('error');
+                     div.innerHTML = error.message;
+                 }
+    </script>
+</body>
+
+</html>

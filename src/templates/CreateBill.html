@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css" />
+<html>
+
+<head>
+    <base target="_top">
+</head>
+
+<body>
+    <span class="gray">Select month and year to bill</span>
+    <div class="block form-group">
+        <select id="month">
+        <option value='0'>January</option>
+        <option value='1'>February</option>
+        <option value='2'>March</option>
+        <option value='3'>April</option>
+        <option value='4'>May</option>
+        <option value='5'>June</option>
+        <option value='6'>July</option>
+        <option value='7'>August</option>
+        <option value='8'>September</option>
+        <option value='9'>October</option>
+        <option value='10'>November</option>
+        <option value='11'>December</option>
+      </select>
+
+        <select id="year">
+        <option value='2016'>2016</option>
+        <option value='2017'>2017</option>
+        <option value='2018'>2018</option>
+        <option value='2019'>2019</option>
+        <option value='2020'>2020</option>
+      </select>
+    </div>
+    <br/>
+    <div id="error" class="error"></div>
+    <br/>
+    <input type="button" value="Run" class="action" onclick="handleSubmit()" />
+<input type="button" value="Cancel" onclick="google.script.host.close()" />
+
+<script>
+                                             function handleSubmit() {
+                                                 var monthElement = document.getElementById('month');
+                                                 var yearElement = document.getElementById('year');
+                                                 var month = parseInt(monthElement.options[monthElement.selectedIndex].value);
+                                                 var year = parseInt(yearElement.options[yearElement.selectedIndex].value);
+                                                 google.script.run.withFailureHandler(onFailure)
+                                                     .withSuccessHandler(google.script.host.close)
+                                                     .monthlyBilling(month, year);
+                                                 var div = document.getElementById('error');
+                                                 div.innerHTML = "Running...";
+                                             }
+                                             function onFailure(error) {
+                                                 var div = document.getElementById('error');
+                                                 div.innerHTML = error.message;
+                                             }
+</script>
+</body>
+
+</html>

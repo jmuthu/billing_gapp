@@ -1,28 +1,57 @@
 /* globals getMonthFromString, LockService, log, SpreadsheetApp, daysInMonth,
    getBalanceMap, calculateCharges, getARMap, initializeOutput,
    closeAccount, Logger, updateBalance, throwException, BillReport,
-   SpreadsheetRepository
+   SpreadsheetRepository, HtmlService
   */
 
-function monthlyBilling() {
-    var inputSheet = SpreadsheetRepository.spreadSheet.getSheetByName('Generate Bill');
-    var monthString = inputSheet.getRange(2, 1).getValue();
-    var month = getMonthFromString(monthString);
-    var year = inputSheet.getRange(2, 2).getValue();
-
-    log('Billing started for ' + monthString + ', ' + year);
-    generateBill(undefined, undefined, month, year);
-    log('Billing ended for ' + monthString + ', ' + year);
+function onOpen() {
+    SpreadsheetApp.getUi() // Or DocumentApp or FormApp.
+        .createMenu('Billing')
+        .addItem('Run monthly', 'monthlyBillingDialog')
+        .addItem('Finalize settlement', 'settlementDialog')
+        .addToUi();
 }
 
-function generateFinalSettlement() {
-    var inputSheet = SpreadsheetRepository.spreadSheet.getSheetByName('Generate Bill');
-    var subscriberId = inputSheet.getRange(2, 5).getValue();
+function monthlyBillingDialog() {
+    var html = HtmlService.createTemplateFromFile('CreateBill')
+        .evaluate()
+        .setWidth(300)
+        .setHeight(140);
+    SpreadsheetApp.getUi()
+        .showModalDialog(html, 'Monthly Billing');
+}
+
+function settlementDialog() {
+    var html = HtmlService.createTemplateFromFile('Settlement')
+        .evaluate()
+        .setWidth(300)
+        .setHeight(250);
+    SpreadsheetApp.getUi()
+        .showModalDialog(html, 'Finalize Settlement');
+}
+
+function monthlyBilling(month, year) {
+    if (month === undefined) {
+        var inputSheet = SpreadsheetRepository.spreadSheet.getSheetByName('Generate Bill');
+        var monthString = inputSheet.getRange(2, 1).getValue();
+        month = getMonthFromString(monthString);
+        year = inputSheet.getRange(2, 2).getValue();
+    }
+    log('Billing started for ' + month + '/' + year);
+    generateBill(undefined, undefined, month, year);
+    log('Billing ended for ' + month + '/' + year);
+}
+
+function generateFinalSettlement(subscriberId, settlementDay) {
+    if (subscriberId === undefined) {
+        var inputSheet = SpreadsheetRepository.spreadSheet.getSheetByName('Generate Bill');
+        subscriberId = inputSheet.getRange(2, 5).getValue();
+        settlementDay = inputSheet.getRange(2, 6).getValue();
+    }
     var date = new Date();
-    var settlementDay = inputSheet.getRange(2, 6).getValue();
     var settlementDate = new Date(date.getYear(), date.getMonth(), settlementDay, 0, 0, 0, 0);
     log('Settlement started for ' + subscriberId);
-    generateBill(subscriberId, settlementDate, date.getMonth(), date.getYear());
+    generateBill(subscriberId, settlementDate, settlementDate.getMonth(), settlementDate.getYear());
     log('Settlement ended for ' + subscriberId);
 }
 
