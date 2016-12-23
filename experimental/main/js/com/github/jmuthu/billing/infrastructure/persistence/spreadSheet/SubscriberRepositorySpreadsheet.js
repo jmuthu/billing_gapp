@@ -2,6 +2,7 @@ import { SpreadsheetRepository } from './SpreadsheetRepository';
 import { ExceptionLogger } from '../../../shared/ExceptionLogger';
 import { Subscriber, Contact } from '../../../domain/model/Subscriber';
 import { Subscription } from '../../../domain/model/Subscription';
+import { AccountReceivable } from '../../../domain/model/AccountReceivable';
 import { DateUtil } from '../../../shared/DateUtil';
 import { Balance } from '../../../domain/model/Balance';
 
@@ -11,6 +12,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let subscriberList = [];
         let subscriptionMap = this.findAllSubscription(startDate, endDate);
         let balanceMap = this.findAllBalance(startDate, endDate);
+        let arMap = this.findAllAccountReceivable(startDate, endDate);
         for (let i = 1; i < subscriberData.length; i++) {
             let contact = new Contact(
                 subscriberData[i][1],
@@ -33,6 +35,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
             }
             subscriber.setBalance(balance);
             subscriber.setSubscriptionList(subscriptionMap[subscriber.id]);
+            subscriber.setArList(arMap[subscriber.id]);
             //if (subscriberData[i][9] && subscriberData[i][9] !== '' &&
             //    subscriber.LateFeePricing === undefined) {
             //    throw new ExceptionLogger('Error! Invalid late fee pricing configuration for ' + subscriber.SubscriberId);
@@ -108,4 +111,25 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return subscriptionMap;
     }
 
+    findAllAccountReceivable(startDate, endDate) {
+        let arData = super.spreadSheet().getSheetByName('AR').getDataRange().getValues();
+        let arMap = {};
+        for (let i = 1; i < arData.length; i++) {
+            let ar = new AccountReceivable(
+                arData[i][0],
+                arData[i][1],
+                arData[i][2],
+                arData[i][4]
+            );
+            let arId = arData[i][3];
+            if (ar.createdDate >= startDate && ar.createdDate <= endDate) {
+                if (arMap[arId]) {
+                    arMap[arId].push(ar);
+                } else {
+                    arMap[arId] = [ar];
+                }
+            }
+        }
+        return arMap;
+    }
 }
