@@ -1,6 +1,6 @@
 export class DateUtil {
     static getMonthFromString(month) {
-        var monthList = {
+        let monthList = {
             'January': 0,
             'February': 1,
             'March': 2,
@@ -27,9 +27,9 @@ export class DateUtil {
         arr = arr.sort(function (a, b) {
             return a - b;
         });
-        var ret = [arr[0]];
+        let ret = [arr[0]];
         // start loop at 1 as element 0 can never be a duplicate
-        for (var i = 1; i < arr.length; i++) {
+        for (let i = 1; i < arr.length; i++) {
             if (arr[i - 1].getTime() != arr[i].getTime()) {
                 ret.push(arr[i]);
             }
@@ -38,13 +38,13 @@ export class DateUtil {
     }
 
     static incrementDay(date) {
-        var result = new Date(date);
+        let result = new Date(date);
         result.setDate(result.getDate() + 1);
         return result;
     }
 
     static previousMonth(date) {
-        var result = new Date(date);
+        let result = new Date(date);
         result.setMonth(result.getMonth() - 1);
         return result;
     }

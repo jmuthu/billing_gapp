@@ -5,8 +5,8 @@ export class SpreadsheetRepository {
     }
 
     getLock() {
-        var lock = LockService.getScriptLock();
-        var success = lock.tryLock(10000);
+        let lock = LockService.getScriptLock();
+        let success = lock.tryLock(10000);
         if (!success) {
             throw new ExceptionLogger('Could not obtain lock for script even after 10 seconds.');
         }
