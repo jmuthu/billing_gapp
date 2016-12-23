@@ -1,6 +1,6 @@
-class ExceptionLogger {
+export class ExceptionLogger {
     constructor(message) {
         Logger.log(message);
-        throw message;
+        this.message = message;
     }
 }

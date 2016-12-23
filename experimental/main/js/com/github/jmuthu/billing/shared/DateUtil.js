@@ -1,4 +1,4 @@
-class DateUtil {
+export class DateUtil {
     static getMonthFromString(month) {
         var monthList = {
             'January': 0,
@@ -40,6 +40,12 @@ class DateUtil {
     static incrementDay(date) {
         var result = new Date(date);
         result.setDate(result.getDate() + 1);
+        return result;
+    }
+
+    static previousMonth(date) {
+        var result = new Date(date);
+        result.setMonth(result.getMonth() - 1);
         return result;
     }
 }

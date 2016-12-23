@@ -1,8 +1,6 @@
-class Balance {
-
-    constructor(index, subscriber, amount) {
-        this.index = index;
+export class Balance {
+    constructor(id, amount) {
+        this.id = id;
         this.amount = amount;
-        this.subscriber = subscriber;
     }
 }

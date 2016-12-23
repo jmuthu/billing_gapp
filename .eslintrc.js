@@ -31,11 +31,8 @@ module.exports = {
     },
     "globals": {
         "SpreadsheetApp": true,
-        "require": false,
-        "BalanceRepository": true,
-        "SpreadsheetRepository": true,
-        "Subscriber": true,
-        "Balance": true,
-        "BalanceRepositorySpreadsheet": true
+        "Logger": true,
+        "LockService": true,
+        "require": true
     }
 };
