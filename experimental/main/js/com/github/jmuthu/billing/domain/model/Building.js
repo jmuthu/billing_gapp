@@ -1,7 +1,16 @@
-class Building {
-    constructor(id, type, maxOccupants, meterReadingList) { }
+export class Building {
+    constructor(id, type, maxOccupants, meterReadingList) {
+        this.id = id;
+        this.type = type;
+        this.maxOccupants = maxOccupants;
+        this.meterReadingList = meterReadingList;
+    }
 }
 
-class MeterReading {
-    constructor(startDate, endDate, value, building) { }
+export class MeterReading {
+    constructor(startDate, endDate, value) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.value = value;
+    }
 }
