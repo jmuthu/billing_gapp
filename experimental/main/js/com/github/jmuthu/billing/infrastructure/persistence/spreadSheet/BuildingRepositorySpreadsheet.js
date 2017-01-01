@@ -11,7 +11,7 @@ export class BuildingRepositorySpreadsheet extends SpreadsheetRepository {
         let buildingData = super.spreadSheet().getSheetByName('Building').getDataRange().getValues();
         let meterReadingMap = this.findMeterReading(startDate, endDate);
         for (let i = 1; i < buildingData.length; i++) {
-            let building = new Building(buildingData[i][0], buildingData[i][1], buildingData[i][2], meterReadingMap[building[i][0]]);
+            let building = new Building(buildingData[i][0], buildingData[i][1], buildingData[i][2], meterReadingMap[buildingData[i][0]]);
             buildingMap[building.id] = building;
         }
         return buildingMap;

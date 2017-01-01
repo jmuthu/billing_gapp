@@ -1,9 +1,13 @@
 import { SubscriberRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/SubscriberRepositorySpreadsheet';
+import { PricingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/PricingRepositorySpreadsheet';
+import { BuildingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/BuildingRepositorySpreadsheet';
 import { DateUtil } from '../shared/DateUtil';
 import { ExceptionLogger } from '../shared/ExceptionLogger';
 class BillingService {
     constructor() {
+        // the repo should be done through DI mechanism
         this.subscriberRepository = new SubscriberRepositorySpreadsheet();
+        this.buildingRepository = new BuildingRepositorySpreadsheet();
     }
 
     monthlyBilling(monthName, year) {
@@ -20,20 +24,22 @@ class BillingService {
         let lock = this.subscriberRepository.getLock();
 
         let subscriberList = this.subscriberRepository.findBillableSubscribers(startDate, endDate);
-        for (var i in subscriberList) {
+        let buildingMap = this.buildingRepository.findAll(startDate, endDate);
+
+        for (let subscriberId in subscriberList) {
             //subscriberList[i].generateBill(month, year);
-            Logger.log(subscriberList[i].contact.name);
+            for (let subscriptionId in subscriberList[subscriberId].subscriptionList) {
+                let subscription = subscriberList[subscriberId].subscriptionList[subscriptionId];
+                subscription.calculatePeriod(startDate, endDate);
+                buildingMap[subscription.buildingId].addSubscription(subscription);
+            }
+        }
+        for (let buildingId in buildingMap) {
+            buildingMap[buildingId].buildPeriod(startDate, endDate);
         }
         Logger.log('Billing ended for ' + monthName + ', ' + year);
         this.subscriberRepository.releaseLock(lock);
     }
 
-    /*    
-        generateFinalSettlement(settlementDate, settlementSubscriberId) {
-            let subscriber = this.subscriberRepository.find(settlementSubscriberId);
-            Logger.log('Settlement started for ' + settlementSubscriberId);
-            subscriber.finalizeSettlement(settlementDate);
-            Logger.log('Settlement ended for ' + settlementSubscriberId);
-        }
-    */
+
 }

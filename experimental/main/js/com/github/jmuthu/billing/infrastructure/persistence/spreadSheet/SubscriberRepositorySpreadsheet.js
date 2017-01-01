@@ -81,7 +81,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return colIndex;
     }
 
-    findAllSubscription(billFrom, billTo) {
+    findAllSubscription(startDate, endDate) {
         let subscriptionData = super.spreadSheet().getSheetByName('Subscription').getDataRange().getValues();
         let subscriptionMap = [];
         for (let i = 1; i < subscriptionData.length; i++) {
@@ -93,10 +93,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 subscriptionData[i][5]
             );
 
-            if (subscription.startDate <= billTo && billFrom <= subscription.endDate) {
-                //var result = getSubscriptionPeriod(subscription.DateFrom, subscription.DateTo, billFrom, billTo);
-                //subscription.BillingStart = result.BillingStart;
-                //subscription.BillingEnd = result.BillingEnd;
+            if (subscription.startDate <= endDate && startDate <= subscription.endDate) {
                 //subscription.Pricing = pricingMap[subscriptionData[i][2]];
                 //if (subscription.Pricing === undefined) {
                 //  throwException('Error! Invalid subscription pricing configuration for ' + subscription.SubscriptionId);
