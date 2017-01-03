@@ -29,7 +29,7 @@ export class Building {
         }
         let dates = DateUtil.sortUniqueDate(datesList);
         this.periodList = [];
-        for (var i = 0; i < dates.length - 1; i++) {
+        for (let i = 0; i < dates.length - 1; i++) {
             let end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);
 
@@ -64,8 +64,8 @@ export class Building {
     }
 
     countSubscription(startDate, endDate) {
-        var count = 0;
-        for (var i = 0; i < this.subscriptionList.length; i++) {
+        let count = 0;
+        for (let i = 0; i < this.subscriptionList.length; i++) {
             if (this.subscriptionList[i].startDate <= startDate && this.subscriptionList[i].endDate >= endDate) {
                 count++;
             }

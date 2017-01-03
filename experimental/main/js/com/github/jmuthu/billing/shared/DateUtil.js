@@ -50,8 +50,8 @@ export class DateUtil {
     }
 
     static calculateProration(actualStart, actualEnd, startDate) {
-        var noOfDays = (actualEnd.getTime() - actualStart.getTime()) / 86400000 + 1;
-        var proration = noOfDays / this.daysInMonth(startDate.getMonth(), startDate.getYear());
+        let noOfDays = (actualEnd.getTime() - actualStart.getTime()) / 86400000 + 1;
+        let proration = noOfDays / this.daysInMonth(startDate.getMonth(), startDate.getYear());
         return proration;
     }
 }
