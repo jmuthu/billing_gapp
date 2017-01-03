@@ -18,7 +18,7 @@ export class Building {
     }
 
     buildPeriod(startDate, endDate) {
-        let datesList = [];
+        let datesList = [startDate, DateUtil.incrementDay(endDate)];
         for (let i = 0; i < this.subscriptionList.length; i++) {
             this.subscriptionList[i].calculateBillingPeriod(startDate, endDate);
             datesList.push(this.subscriptionList[i].billingStart);
