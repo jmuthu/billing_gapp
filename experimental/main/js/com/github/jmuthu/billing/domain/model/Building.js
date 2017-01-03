@@ -18,16 +18,16 @@ export class Building {
     }
 
     buildPeriod(startDate, endDate) {
-        let periodList = [];
+        let datesList = [];
         for (let i = 0; i < this.subscriptionList.length; i++) {
             this.subscriptionList[i].calculateBillingPeriod(startDate, endDate);
-            periodList.push(this.subscriptionList[i].billingStart);
+            datesList.push(this.subscriptionList[i].billingStart);
 
             // Need to do this to sync with all start dates in period
             let newEnd = DateUtil.incrementDay(this.subscriptionList[i].billingEnd);
-            periodList.push(newEnd);
+            datesList.push(newEnd);
         }
-        let dates = DateUtil.sortUniqueDate(periodList);
+        let dates = DateUtil.sortUniqueDate(datesList);
         this.periodList = [];
         for (var i = 0; i < dates.length - 1; i++) {
             let end = new Date(dates[i + 1].valueOf());
