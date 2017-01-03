@@ -10,7 +10,7 @@ export class Building {
 
         this.meterReadingList = meterReadingList;
         this.subscriptionList = [];
-        this.periodList = [];
+        this.periodList = undefined;
     }
 
     addSubscription(subscription) {
@@ -20,6 +20,7 @@ export class Building {
     buildPeriod(startDate, endDate) {
         let periodList = [];
         for (let i = 0; i < this.subscriptionList.length; i++) {
+            this.subscriptionList[i].calculateBillingPeriod(startDate, endDate);
             periodList.push(this.subscriptionList[i].billingStart);
 
             // Need to do this to sync with all start dates in period
@@ -27,7 +28,7 @@ export class Building {
             periodList.push(newEnd);
         }
         let dates = DateUtil.sortUniqueDate(periodList);
-
+        this.periodList = [];
         for (var i = 0; i < dates.length - 1; i++) {
             let end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);

@@ -129,4 +129,104 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         }
         return arMap;
     }
+
+    storeBills(subscriberList, monthName, year) {
+        var sheetName = 'Bill - ' + monthName + ',' + year;
+        if (super.spreadSheet().getSheetByName(sheetName) !== null) {
+            throw new ExceptionLogger('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
+        }
+
+        let buffer = [];
+        buffer[0] = [
+            'Bill ID',
+            'Subscriber ID',
+            'Name',
+            'Phone',
+            'Total Due =',
+            'Previous Balance',
+            '- Payments Received',
+            '- Adjustments',
+            '- Advance',
+            '+ Late fees',
+            '+ Current Charges',
+            'Building ID',
+            'Billing Start',
+            'Billing End',
+            'Monthly rental',
+            'Meter Charges'
+        ];
+        let buildingPeriodBuffer = [];
+        buildingPeriodBuffer[0] = [
+            'Building ID',
+            'Start Date',
+            'End Date',
+            'Proration',
+            'Subscriber Count',
+            'Meter value'
+        ];
+        for (let subscriberId in subscriberList) {
+            if (subscriberList[subscriberId].currentBill !== undefined) {
+                this.addBill(buffer, subscriberList[subscriberId]);
+                // this.addBuildingPeriod(buildingPeriodBuffer, subscriberList[subscriberId].subscriptionList);
+            }
+        }
+        let billSheet = super.spreadSheet().insertSheet(sheetName, 0);
+        billSheet.getRange(1, 1, buffer.length, 16).setValues(buffer);
+        billSheet.getRange(1, 19, buildingPeriodBuffer.length, 6).setValues(buildingPeriodBuffer);
+    }
+
+    addBill(buffer, subscriber) {
+        var rowIndex = buffer.length;
+        let billSummary = [
+            rowIndex,
+            subscriber.id,
+            subscriber.contact.name,
+            subscriber.contact.phone,
+            subscriber.currentBill.getTotalDue(),
+            subscriber.currentBill.previousDue,
+            subscriber.currentBill.payment,
+            subscriber.currentBill.adjustment,
+            subscriber.currentBill.advance,
+            subscriber.currentBill.lateFee,
+            subscriber.currentBill.totalCharge];
+
+        if (subscriber.currentBill.chargeList.length == 1) {
+            let charge = subscriber.currentBill.chargeList[0];
+            buffer[rowIndex] = billSummary.concat([
+                charge.subscription.building.id,
+                charge.subscription.billingStart,
+                charge.subscription.billingEnd,
+                charge.monthlyFee,
+                charge.meterCharge]);
+        } else {
+            buffer[rowIndex] = billSummary.concat(['', '', '', '', '']);
+            for (let j = 0; j < subscriber.currentBill.chargeList.length; j++) {
+                let charge = subscriber.currentBill.chargeList[j];
+                rowIndex++;
+                buffer[rowIndex] = [
+                    '', '', '', '', '', '', '', '', '', '',
+                    charge.total,
+                    charge.subscription.building.id,
+                    charge.subscription.billingStart,
+                    charge.subscription.billingEnd,
+                    charge.monthlyFee,
+                    charge.meterCharge];
+            }
+        }
+    }
+
+    addBuildingPeriod(buildingPeriodBuffer, subscriptionList) {
+        for (let id in subscriptionList) {
+            for (let i in subscriptionList[id].building.periodList) {
+                let period = subscriptionList[id].building.periodList[i];
+                buildingPeriodBuffer.push([
+                    subscriptionList[id].buildingId,
+                    period.startDate,
+                    period.endDate,
+                    period.proration,
+                    period.count,
+                    Math.round(period.meterValue)]);
+            }
+        }
+    }
 }

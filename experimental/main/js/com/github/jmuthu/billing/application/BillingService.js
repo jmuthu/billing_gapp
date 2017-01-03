@@ -1,16 +1,17 @@
 import { SubscriberRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/SubscriberRepositorySpreadsheet';
-import { PricingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/PricingRepositorySpreadsheet';
 import { BuildingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/BuildingRepositorySpreadsheet';
+import { PricingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/PricingRepositorySpreadsheet';
 import { DateUtil } from '../shared/DateUtil';
 import { ExceptionLogger } from '../shared/ExceptionLogger';
 class BillingService {
-    constructor() {
+    constructor(subscriberRepository, buildingRepository, pricingRepository) {
         // the repo should be done through DI mechanism
-        this.subscriberRepository = new SubscriberRepositorySpreadsheet();
-        this.buildingRepository = new BuildingRepositorySpreadsheet();
+        this.subscriberRepository = subscriberRepository;
+        this.buildingRepository = buildingRepository;
+        this.pricingRepository = pricingRepository;
     }
 
-    monthlyBilling(monthName, year) {
+    runBilling(monthName, year) {
         let month = DateUtil.getMonthFromString(monthName);
         Logger.log('Billing started for ' + monthName + ', ' + year);
         let startDate = new Date(year, month, 1, 0, 0, 0, 0);
@@ -27,19 +28,21 @@ class BillingService {
         let buildingMap = this.buildingRepository.findAll(startDate, endDate);
 
         for (let subscriberId in subscriberList) {
-            //subscriberList[i].generateBill(month, year);
-            for (let subscriptionId in subscriberList[subscriberId].subscriptionList) {
-                let subscription = subscriberList[subscriberId].subscriptionList[subscriptionId];
-                subscription.calculatePeriod(startDate, endDate);
-                buildingMap[subscription.buildingId].addSubscription(subscription);
+            let subscriber = subscriberList[subscriberId];
+            subscriber.setLateFeePricing(this.pricingRepository.find(subscriber.lateFeePricingId));
+
+            for (let subscriptionId in subscriber.subscriptionList) {
+                let subscription = subscriber.subscriptionList[subscriptionId];
+                subscription.setPricing(this.pricingRepository.find(subscription.pricingId));
+                subscription.setBuilding(buildingMap[subscription.buildingId]);
             }
         }
-        for (let buildingId in buildingMap) {
-            buildingMap[buildingId].buildPeriod(startDate, endDate);
+
+        for (let subscriberId in subscriberList) {
+            subscriberList[subscriberId].runBilling(startDate, endDate);
         }
+        this.subscriberRepository.storeBills(subscriberList, monthName, year);
         Logger.log('Billing ended for ' + monthName + ', ' + year);
         this.subscriberRepository.releaseLock(lock);
     }
-
-
 }

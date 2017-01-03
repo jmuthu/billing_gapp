@@ -12,4 +12,34 @@ export class Pricing {
         this.latePayment10_15days = latePayment10_15days;
         this.latePaymentAfter15days = latePaymentAfter15days;
     }
+
+    rateSubscription(subscription, periodList) {
+        let monthlyRental = 0;
+        let meterCharge = 0;
+        for (let i = 0; i < periodList.length; i++) {
+            let period = periodList[i];
+            if (subscription.billingStart <= period.startDate && subscription.billingEnd >= period.endDate) {
+                let price = this.pricingPer1;
+                if (period.count == 2) {
+                    price = this.pricingPer2;
+                } else if (period.count == 3) {
+                    price = this.pricingPer3;
+                }
+                monthlyRental += period.proration * price;
+                meterCharge += this.meterRate * period.meterValue / period.count;
+            }
+        }
+        monthlyRental = Math.round(monthlyRental);
+        meterCharge = Math.round(meterCharge);
+        return new Charge(subscription, monthlyRental, meterCharge);
+    }
+}
+
+export class Charge {
+    constructor(subscription, monthlyFee, meterCharge) {
+        this.subscription = subscription;
+        this.monthlyFee = monthlyFee;
+        this.meterCharge = meterCharge;
+        this.total = monthlyFee + meterCharge;
+    }
 }

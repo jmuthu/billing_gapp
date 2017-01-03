@@ -7,9 +7,11 @@ export class Subscription {
         this.endDate = endDate;
         this.billingStart = startDate;
         this.billingEnd = endDate;
+        this.pricing = undefined;
+        this.building = undefined;
     }
 
-    calculatePeriod(startDate, endDate) {
+    calculateBillingPeriod(startDate, endDate) {
         this.billingStart = startDate;
         this.billingEnd = endDate;
         if (this.startDate > startDate) {
@@ -27,5 +29,21 @@ export class Subscription {
                 this.billingEnd = this.endDate;
             }
         }
+    }
+
+    setPricing(pricing) {
+        this.pricing = pricing;
+    }
+
+    setBuilding(building) {
+        this.building = building;
+        this.building.addSubscription(this);
+    }
+
+    computeCharges(startDate, endDate) {
+        if (this.building.periodList === undefined) {
+            this.building.buildPeriod(startDate, endDate);
+        }
+        return this.pricing.rateSubscription(this, this.building.periodList);
     }
 }
