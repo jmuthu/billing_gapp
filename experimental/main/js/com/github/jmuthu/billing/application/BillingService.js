@@ -41,7 +41,7 @@ class BillingService {
         for (let subscriberId in subscriberList) {
             subscriberList[subscriberId].runBilling(startDate, endDate);
         }
-        this.subscriberRepository.storeBills(subscriberList, monthName, year);
+        this.subscriberRepository.storeBills(subscriberList, buildingMap, monthName, year);
         Logger.log('Billing ended for ' + monthName + ', ' + year);
         this.subscriberRepository.releaseLock(lock);
     }

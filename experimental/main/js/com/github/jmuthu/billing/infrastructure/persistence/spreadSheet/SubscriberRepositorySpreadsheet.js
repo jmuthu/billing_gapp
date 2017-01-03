@@ -130,7 +130,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return arMap;
     }
 
-    storeBills(subscriberList, monthName, year) {
+    storeBills(subscriberList, buildingMap, monthName, year) {
         var sheetName = 'Bill - ' + monthName + ',' + year;
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
             throw new ExceptionLogger('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
@@ -156,27 +156,25 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
             'Meter Charges'
         ];
         let buildingPeriodBuffer = [];
-        buildingPeriodBuffer[0] = [
-            'Building ID',
-            'Start Date',
-            'End Date',
-            'Proration',
-            'Subscriber Count',
-            'Meter value'
-        ];
-        for (let subscriberId in subscriberList) {
-            if (subscriberList[subscriberId].currentBill !== undefined) {
-                this.addBill(buffer, subscriberList[subscriberId]);
-                // this.addBuildingPeriod(buildingPeriodBuffer, subscriberList[subscriberId].subscriptionList);
+        buildingPeriodBuffer[0] = ['Building ID', 'Start Date', 'End Date', 'Proration', 'Subscriber Count', 'Meter value'];
+
+        for (let i in subscriberList) {
+            if (subscriberList[i].currentBill !== undefined) {
+                this.addBill(buffer, subscriberList[i]);
             }
         }
+
+        for (let id in buildingMap) {
+            this.addBuildingPeriod(buildingPeriodBuffer, buildingMap[id]);
+        }
+
         let billSheet = super.spreadSheet().insertSheet(sheetName, 0);
         billSheet.getRange(1, 1, buffer.length, 16).setValues(buffer);
         billSheet.getRange(1, 19, buildingPeriodBuffer.length, 6).setValues(buildingPeriodBuffer);
     }
 
     addBill(buffer, subscriber) {
-        var rowIndex = buffer.length;
+        let rowIndex = buffer.length;
         let billSummary = [
             rowIndex,
             subscriber.id,
@@ -215,18 +213,16 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         }
     }
 
-    addBuildingPeriod(buildingPeriodBuffer, subscriptionList) {
-        for (let id in subscriptionList) {
-            for (let i in subscriptionList[id].building.periodList) {
-                let period = subscriptionList[id].building.periodList[i];
-                buildingPeriodBuffer.push([
-                    subscriptionList[id].buildingId,
-                    period.startDate,
-                    period.endDate,
-                    period.proration,
-                    period.count,
-                    Math.round(period.meterValue)]);
-            }
+    addBuildingPeriod(buildingPeriodBuffer, building) {
+        for (let i in building.periodList) {
+            let period = building.periodList[i];
+            buildingPeriodBuffer.push([
+                building.id,
+                period.startDate,
+                period.endDate,
+                period.proration,
+                period.count,
+                Math.round(period.meterValue)]);
         }
     }
 }
