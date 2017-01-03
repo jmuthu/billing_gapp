@@ -130,8 +130,8 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return arMap;
     }
 
-    storeBills(subscriberList, buildingMap, monthName, year) {
-        var sheetName = 'Bill - ' + monthName + ',' + year;
+    storeBills(subscriberList, buildingMap, month, year) {
+        let sheetName = 'Bill - ' + (month + 1) + '/' + year;
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
             throw new ExceptionLogger('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
         }
@@ -171,6 +171,8 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let billSheet = super.spreadSheet().insertSheet(sheetName, 0);
         billSheet.getRange(1, 1, buffer.length, 16).setValues(buffer);
         billSheet.getRange(1, 19, buildingPeriodBuffer.length, 6).setValues(buildingPeriodBuffer);
+
+        this.updateBalance(subscriberList, month, year);
     }
 
     addBill(buffer, subscriber) {
@@ -224,5 +226,37 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 period.count,
                 Math.round(period.meterValue)]);
         }
+    }
+
+    updateBalance(subscriberList, month, year) {
+        let heading = new Date(year, month, DateUtil.daysInMonth(month, year), 0, 0, 0, 0);
+        /*if (settlementDate !== undefined) {
+            heading = settlementSubscriberId + ' - ' + settlementDate.toDateString();
+        }
+        */
+        let balanceSheet = super.spreadSheet().getSheetByName('Balance');
+        balanceSheet.insertColumnAfter(1);
+        let maxRows = balanceSheet.getLastRow();
+
+        /*if (settlementSubscriberId !== undefined) {
+            let rowIndex = balanceMap[settlementSubscriberId].Index == -1 ?
+                ++maxRows : balanceMap[settlementSubscriberId].Index;
+            balanceSheet.getRange(1, 2).setValue(heading);
+            balanceSheet.getRange(rowIndex, 1, 1, 2).setValues([
+                [settlementSubscriberId, balanceMap[settlementSubscriberId].Amount]]);
+        } else {
+        */
+        let values = [];
+        values[0] = ['Subscriber ID', heading];
+
+        for (let i in subscriberList) {
+            if (subscriberList[i].balance.id === -1) {
+                values[maxRows] = [subscriberList[i].id, subscriberList[i].balance.amount];
+                maxRows++;
+            } else {
+                values[subscriberList[i].balance.id - 1] = [subscriberList[i].id, subscriberList[i].balance.amount];
+            }
+        }
+        balanceSheet.getRange(1, 1, maxRows, 2).setValues(values);
     }
 }
