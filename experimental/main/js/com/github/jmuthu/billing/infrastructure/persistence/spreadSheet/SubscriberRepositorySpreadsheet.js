@@ -1,3 +1,4 @@
+// @flow
 import { SpreadsheetRepository } from './SpreadsheetRepository';
 import { ExceptionLogger } from '../../../shared/ExceptionLogger';
 import { Subscriber, Contact } from '../../../domain/model/Subscriber';
@@ -5,9 +6,10 @@ import { Subscription } from '../../../domain/model/Subscription';
 import { AccountReceivable } from '../../../domain/model/AccountReceivable';
 import { DateUtil } from '../../../shared/DateUtil';
 import { Balance } from '../../../domain/model/Balance';
+import { Building } from '../../../domain/model/Building';
 
 export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
-    findBillableSubscribers(startDate, endDate) {
+    findBillableSubscribers(startDate: Date, endDate: Date) {
         let subscriberData = super.spreadSheet().getSheetByName('Subscriber').getDataRange().getValues();
         let subscriberList = [];
         let subscriptionMap = this.findAllSubscription(startDate, endDate);
@@ -45,14 +47,14 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return subscriberList;
     }
 
-    findAllBalance(startDate, endDate) {
+    findAllBalance(startDate: Date, endDate: Date) {
         let balanceMap = {};
         let balanceData = super.spreadSheet().getSheetByName('Balance').getDataRange().getValues();
         let previous = DateUtil.previousMonth(startDate);
-        let date = new Date(previous.getYear(), previous.getMonth(), DateUtil.daysInMonth(previous.getMonth(), previous.getYear()), 0, 0, 0, 0);
+        let date = new Date(previous.getFullYear(), previous.getMonth(), DateUtil.daysInMonth(previous.getMonth(), previous.getFullYear()), 0, 0, 0, 0);
         let prevBalIndex = this.findBalanceDataIndex(balanceData, date);
         if (prevBalIndex == -1) {
-            throw new ExceptionLogger('Error! Missing balance information for ' + startDate.getMonth() + '/' + startDate.getYear());
+            throw new ExceptionLogger('Error! Missing balance information for ' + startDate.getMonth() + '/' + startDate.getFullYear());
         }
 
         for (let i = 1; i < balanceData.length; i++) {
@@ -67,7 +69,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return balanceMap;
     }
 
-    findBalanceDataIndex(balanceData, date) {
+    findBalanceDataIndex(balanceData: any[][], date: Date) {
         let colIndex = -1;
         for (let i = 1; i < 1000; i = i + 1) {
             let header = balanceData[0][i];
@@ -81,9 +83,9 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return colIndex;
     }
 
-    findAllSubscription(startDate, endDate) {
+    findAllSubscription(startDate: Date, endDate: Date) {
         let subscriptionData = super.spreadSheet().getSheetByName('Subscription').getDataRange().getValues();
-        let subscriptionMap = [];
+        let subscriptionMap = {};
         for (let i = 1; i < subscriptionData.length; i++) {
             let subscription = new Subscription(
                 subscriptionData[i][0],
@@ -108,7 +110,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return subscriptionMap;
     }
 
-    findAllAccountReceivable(startDate, endDate) {
+    findAllAccountReceivable(startDate: Date, endDate: Date) {
         let arData = super.spreadSheet().getSheetByName('AR').getDataRange().getValues();
         let arMap = {};
         for (let i = 1; i < arData.length; i++) {
@@ -130,7 +132,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return arMap;
     }
 
-    storeBills(subscriberList, buildingMap, month, year) {
+    storeBills(subscriberList: Array<Subscriber>, buildingMap: { [id: string]: Building }, month: number, year: number) {
         let sheetName = 'Bill - ' + (month + 1) + '/' + year;
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
             throw new ExceptionLogger('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
@@ -158,14 +160,16 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let buildingPeriodBuffer = [];
         buildingPeriodBuffer[0] = ['Building ID', 'Start Date', 'End Date', 'Proration', 'Subscriber Count', 'Meter value'];
 
-        for (let i in subscriberList) {
+        for (let i = 0; i < subscriberList.length; i++) {
             if (subscriberList[i].currentBill !== undefined) {
                 this.addBill(buffer, subscriberList[i]);
             }
         }
 
         for (let id in buildingMap) {
-            this.addBuildingPeriod(buildingPeriodBuffer, buildingMap[id]);
+            if (buildingMap[id].periodList !== undefined) {
+                this.addBuildingPeriod(buildingPeriodBuffer, buildingMap[id]);
+            }
         }
 
         let billSheet = super.spreadSheet().insertSheet(sheetName, 0);
@@ -175,7 +179,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         this.updateBalance(subscriberList, month, year);
     }
 
-    addBill(buffer, subscriber) {
+    addBill(buffer: any[], subscriber: Subscriber) {
         let rowIndex = buffer.length;
         let billSummary = [
             rowIndex,
@@ -215,8 +219,8 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         }
     }
 
-    addBuildingPeriod(buildingPeriodBuffer, building) {
-        for (let i in building.periodList) {
+    addBuildingPeriod(buildingPeriodBuffer: any[], building: Building) {
+        for (let i = 0; i < building.periodList.length; i++) {
             let period = building.periodList[i];
             buildingPeriodBuffer.push([
                 building.id,
@@ -228,7 +232,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         }
     }
 
-    updateBalance(subscriberList, month, year) {
+    updateBalance(subscriberList: Array<Subscriber>, month: number, year: number) {
         let heading = new Date(year, month, DateUtil.daysInMonth(month, year), 0, 0, 0, 0);
         /*if (settlementDate !== undefined) {
             heading = settlementSubscriberId + ' - ' + settlementDate.toDateString();
@@ -249,7 +253,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let values = [];
         values[0] = ['Subscriber ID', heading];
 
-        for (let i in subscriberList) {
+        for (let i = 0; i < subscriberList.length; i++) {
             if (subscriberList[i].balance.id === -1) {
                 values[maxRows] = [subscriberList[i].id, subscriberList[i].balance.amount];
                 maxRows++;

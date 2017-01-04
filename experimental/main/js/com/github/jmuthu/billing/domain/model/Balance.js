@@ -1,8 +1,8 @@
 // @flow
 export class Balance {
-    id: string;
+    id: number;
     amount: number;
-    constructor(id: string, amount: number) {
+    constructor(id: number, amount: number) {
         this.id = id;
         this.amount = amount;
     }
