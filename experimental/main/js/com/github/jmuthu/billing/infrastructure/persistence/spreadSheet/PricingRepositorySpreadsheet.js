@@ -1,3 +1,4 @@
+// @flow
 import {
     SpreadsheetRepository
 } from './SpreadsheetRepository';
@@ -57,7 +58,7 @@ export class PricingRepositorySpreadsheet extends SpreadsheetRepository {
         return pricingMap;
     }
 
-    find(pricingId) {
+    find(pricingId: string) {
         return this.pricingMap[pricingId];
     }
 }

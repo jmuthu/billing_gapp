@@ -1,3 +1,4 @@
+// @flow
 import {
     SpreadsheetRepository
 } from './SpreadsheetRepository';
@@ -6,7 +7,7 @@ import {
 } from '../../../shared/ExceptionLogger';
 import { Building, MeterReading } from '../../../domain/model/Building';
 export class BuildingRepositorySpreadsheet extends SpreadsheetRepository {
-    findAll(startDate, endDate) {
+    findAll(startDate: Date, endDate: Date) {
         let buildingMap = {};
         let buildingData = super.spreadSheet().getSheetByName('Building').getDataRange().getValues();
         let meterReadingMap = this.findMeterReading(startDate, endDate);
@@ -17,7 +18,7 @@ export class BuildingRepositorySpreadsheet extends SpreadsheetRepository {
         return buildingMap;
     }
 
-    findMeterReading(startDate, endDate) {
+    findMeterReading(startDate: Date, endDate: Date) {
         let meterData = super.spreadSheet().getSheetByName('Meter Reading').getDataRange().getValues();
         let meterReadingMap = {};
         for (let i = 1; i < meterData.length; i++) {
