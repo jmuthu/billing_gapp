@@ -1,5 +1,11 @@
+// @flow
 export class AccountReceivable {
-    constructor(id, type, createdDate, amount) {
+    id: string;
+    type: string;
+    createdDate: Date;
+    amount: number;
+
+    constructor(id: string, type: string, createdDate: Date, amount: number) {
         this.id = id;
         this.type = type;
         this.createdDate = createdDate;

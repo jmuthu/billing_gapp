@@ -1,5 +1,17 @@
+// @flow
+import { Pricing } from './Pricing';
+import { Building } from './Building';
 export class Subscription {
-    constructor(id, pricingId, buildingId, startDate, endDate) {
+    id: string;
+    pricingId: string;
+    buildingId: string;
+    startDate: Date;
+    endDate: Date;
+    billingStart: Date;
+    billingEnd: Date;
+    pricing: Pricing;
+    building: Building;
+    constructor(id: string, pricingId: string, buildingId: string, startDate: Date, endDate: Date) {
         this.id = id;
         this.pricingId = pricingId;
         this.buildingId = buildingId;
@@ -11,7 +23,7 @@ export class Subscription {
         this.building = undefined;
     }
 
-    calculateBillingPeriod(startDate, endDate) {
+    calculateBillingPeriod(startDate: Date, endDate: Date) {
         this.billingStart = startDate;
         this.billingEnd = endDate;
         if (this.startDate > startDate) {
@@ -31,16 +43,16 @@ export class Subscription {
         }
     }
 
-    setPricing(pricing) {
+    setPricing(pricing: Pricing) {
         this.pricing = pricing;
     }
 
-    setBuilding(building) {
+    setBuilding(building: Building) {
         this.building = building;
         this.building.addSubscription(this);
     }
 
-    computeCharges(startDate, endDate) {
+    computeCharges(startDate: Date, endDate: Date) {
         if (this.building.periodList === undefined) {
             this.building.buildPeriod(startDate, endDate);
         }

@@ -1,3 +1,4 @@
+// @flow
 export class DateUtil {
     static getMonthFromString(month) {
         let monthList = {

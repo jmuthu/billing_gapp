@@ -1,4 +1,14 @@
+// @flow
+import { Charge } from './Pricing';
 export class Bill {
+    payment: number;
+    lateFee: number;
+    adjustment: number;
+    totalCharge: number;
+    previousDue: number;
+    chargeList: Array<Charge>;
+    advance: number;
+
     constructor() {
         this.payment = 0;
         this.lateFee = 0;
