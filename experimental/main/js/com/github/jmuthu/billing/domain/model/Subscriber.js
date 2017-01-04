@@ -1,49 +1,76 @@
+// @flow
+import { Subscription } from './Subscription';
+import { AccountReceivable } from './AccountReceivable';
+import { Balance } from './Balance';
+import { Pricing } from './Pricing';
 import { Bill } from './Bill';
+
+export class Contact {
+    name: string;
+    phone: string;
+    presentAddress: string;
+    permanentAddress: string;
+    constructor(name: string, phone: string, presentAddress: string, permanentAddress: string) {
+        this.name = name;
+        this.phone = phone;
+        this.presentAddress = presentAddress;
+        this.permanentAddress = permanentAddress;
+    }
+}
+
 export class Subscriber {
-    constructor(id, isIndividual, organizationName, advance, status, lateFeePricingId) {
+    id: string;
+    isIndividual: string;
+    organizationName: string;
+    advance: number;
+    status: string;
+    lateFeePricingId: string;
+    lateFeePricing: Pricing;
+    contact: Contact;
+    balance: Balance;
+    arList: Array<AccountReceivable>;
+    subscriptionList: Array<Subscription>;
+    currentBill: Bill;
+    constructor(id: string, isIndividual: string, organizationName: string, advance: number, status: string, lateFeePricingId: string) {
         this.id = id;
         this.isIndividual = isIndividual;
         this.organizationName = organizationName;
         this.advance = advance;
         this.status = status;
         this.lateFeePricingId = lateFeePricingId;
-        this.lateFeePricing = undefined;
-        this.contact = undefined;
-        this.balance = undefined;
-        this.arList = undefined;
-        this.subscriptionList = undefined;
-        this.currentBill = undefined;
     }
     // Lazy initialized variables below
-    setBalance(balance) {
+    setBalance(balance: Balance) {
         this.balance = balance;
     }
 
-    setContact(contact) {
+    setContact(contact: Contact) {
         this.contact = contact;
     }
 
-    setSubscriptionList(subscriptionList) {
+    setSubscriptionList(subscriptionList: Array<Subscription>) {
         this.subscriptionList = subscriptionList;
     }
 
-    setArList(arList) {
+    setArList(arList: Array<AccountReceivable>) {
         this.arList = arList;
     }
 
-    setLateFeePricing(lateFeePricing) {
+    setLateFeePricing(lateFeePricing: Pricing) {
         this.lateFeePricing = lateFeePricing;
     }
 
-    runBilling(startDate, endDate) {
+    runBilling(startDate: Date, endDate: Date) {
         if (this.status != 'Active') {
             return;
         }
         this.currentBill = new Bill();
-        for (let subscriptionId in this.subscriptionList) {
-            let charge = this.subscriptionList[subscriptionId].computeCharges(startDate, endDate);
-            this.currentBill.chargeList.push(charge);
-            this.currentBill.totalCharge += charge.total;
+        if (this.subscriptionList !== undefined) {
+            for (let i = 0; i < this.subscriptionList.length; i++) {
+                let charge = this.subscriptionList[i].computeCharges(startDate, endDate);
+                this.currentBill.chargeList.push(charge);
+                this.currentBill.totalCharge += charge.total;
+            }
         }
         this.currentBill.previousDue = this.balance.amount;
         this.computeAR();
@@ -71,11 +98,3 @@ export class Subscriber {
     }
 }
 
-export class Contact {
-    constructor(name, phone, presentAddress, permanentAddress) {
-        this.name = name;
-        this.phone = phone;
-        this.presentAddress = presentAddress;
-        this.permanentAddress = permanentAddress;
-    }
-}
