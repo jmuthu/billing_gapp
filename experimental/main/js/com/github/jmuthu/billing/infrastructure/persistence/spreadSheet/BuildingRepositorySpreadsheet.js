@@ -2,9 +2,6 @@
 import {
     SpreadsheetRepository
 } from './SpreadsheetRepository';
-import {
-    ExceptionLogger
-} from '../../../shared/ExceptionLogger';
 import { Building, MeterReading } from '../../../domain/model/Building';
 export class BuildingRepositorySpreadsheet extends SpreadsheetRepository {
     findAll(startDate: Date, endDate: Date) {

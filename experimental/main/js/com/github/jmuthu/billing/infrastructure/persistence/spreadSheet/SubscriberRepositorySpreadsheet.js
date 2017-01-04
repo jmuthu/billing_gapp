@@ -1,6 +1,6 @@
 // @flow
 import { SpreadsheetRepository } from './SpreadsheetRepository';
-import { ExceptionLogger } from '../../../shared/ExceptionLogger';
+import { Exception } from '../../../shared/Exception';
 import { Subscriber, Contact } from '../../../domain/model/Subscriber';
 import { Subscription } from '../../../domain/model/Subscription';
 import { AccountReceivable } from '../../../domain/model/AccountReceivable';
@@ -54,7 +54,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let date = new Date(previous.getFullYear(), previous.getMonth(), DateUtil.daysInMonth(previous.getMonth(), previous.getFullYear()), 0, 0, 0, 0);
         let prevBalIndex = this.findBalanceDataIndex(balanceData, date);
         if (prevBalIndex == -1) {
-            throw new ExceptionLogger('Error! Missing balance information for ' + startDate.getMonth() + '/' + startDate.getFullYear());
+            throw new Exception('Error! Missing balance information for ' + startDate.getMonth() + '/' + startDate.getFullYear());
         }
 
         for (let i = 1; i < balanceData.length; i++) {
@@ -135,7 +135,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
     storeBills(subscriberList: Array<Subscriber>, buildingMap: { [id: string]: Building }, month: number, year: number) {
         let sheetName = 'Bill - ' + (month + 1) + '/' + year;
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
-            throw new ExceptionLogger('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
+            throw new Exception('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
         }
 
         let buffer = [];

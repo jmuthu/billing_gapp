@@ -1,8 +1,8 @@
 // @flow
 import { DateUtil } from '../../shared/DateUtil';
 import {
-    ExceptionLogger
-} from '../../shared/ExceptionLogger';
+    Exception
+} from '../../shared/Exception';
 import { Subscription } from './Subscription';
 export class Building {
     id: string;
@@ -45,7 +45,7 @@ export class Building {
             let meterValue = 0;
             if (this.meterReadingList === undefined) {
                 if (count > 0) {
-                    throw new ExceptionLogger('Error - Missing meter reading for building id - ' + this.id + '!');
+                    throw new Exception('Error - Missing meter reading for building id - ' + this.id + '!');
                 }
             } else {
                 meterValue = this.getMeterForBuildingPeriod(dates[i], end);

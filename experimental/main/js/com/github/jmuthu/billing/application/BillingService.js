@@ -2,7 +2,7 @@ import { SubscriberRepositorySpreadsheet } from '../infrastructure/persistence/s
 import { BuildingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/BuildingRepositorySpreadsheet';
 import { PricingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/PricingRepositorySpreadsheet';
 import { DateUtil } from '../shared/DateUtil';
-import { ExceptionLogger } from '../shared/ExceptionLogger';
+import { Exception } from '../shared/Exception';
 class BillingService {
     constructor(subscriberRepository, buildingRepository, pricingRepository) {
         // the repo should be done through DI mechanism
@@ -20,29 +20,34 @@ class BillingService {
 
         if (date < endDate) {
             // You can still run on the last day of month
-            throw new ExceptionLogger('Cannot run billing for periods ending in future! ' + endDate.toDateString() + ' is in future');
+            throw 'Cannot run billing for periods ending in future! ' + endDate.toDateString() + ' is in future';
         }
-        let lock = this.subscriberRepository.getLock();
+        try {
+            let lock = this.subscriberRepository.getLock();
 
-        let subscriberList = this.subscriberRepository.findBillableSubscribers(startDate, endDate);
-        let buildingMap = this.buildingRepository.findAll(startDate, endDate);
+            let subscriberList = this.subscriberRepository.findBillableSubscribers(startDate, endDate);
+            let buildingMap = this.buildingRepository.findAll(startDate, endDate);
 
-        for (let subscriberId in subscriberList) {
-            let subscriber = subscriberList[subscriberId];
-            subscriber.setLateFeePricing(this.pricingRepository.find(subscriber.lateFeePricingId));
+            for (let subscriberId in subscriberList) {
+                let subscriber = subscriberList[subscriberId];
+                subscriber.setLateFeePricing(this.pricingRepository.find(subscriber.lateFeePricingId));
 
-            for (let subscriptionId in subscriber.subscriptionList) {
-                let subscription = subscriber.subscriptionList[subscriptionId];
-                subscription.setPricing(this.pricingRepository.find(subscription.pricingId));
-                subscription.setBuilding(buildingMap[subscription.buildingId]);
+                for (let subscriptionId in subscriber.subscriptionList) {
+                    let subscription = subscriber.subscriptionList[subscriptionId];
+                    subscription.setPricing(this.pricingRepository.find(subscription.pricingId));
+                    subscription.setBuilding(buildingMap[subscription.buildingId]);
+                }
             }
-        }
 
-        for (let subscriberId in subscriberList) {
-            subscriberList[subscriberId].runBilling(startDate, endDate);
+            for (let subscriberId in subscriberList) {
+                subscriberList[subscriberId].runBilling(startDate, endDate);
+            }
+            this.subscriberRepository.storeBills(subscriberList, buildingMap, month, year);
+            Logger.log('Billing ended for ' + monthName + ', ' + year);
+            this.subscriberRepository.releaseLock(lock);
+        } catch (exception) {
+            Logger.log(exception.message);
+            throw exception.message;
         }
-        this.subscriberRepository.storeBills(subscriberList, buildingMap, month, year);
-        Logger.log('Billing ended for ' + monthName + ', ' + year);
-        this.subscriberRepository.releaseLock(lock);
     }
 }

@@ -3,9 +3,6 @@ import {
     SpreadsheetRepository
 } from './SpreadsheetRepository';
 import {
-    ExceptionLogger
-} from '../../../shared/ExceptionLogger';
-import {
     Pricing
 } from '../../../domain/model/Pricing';
 export class PricingRepositorySpreadsheet extends SpreadsheetRepository {
