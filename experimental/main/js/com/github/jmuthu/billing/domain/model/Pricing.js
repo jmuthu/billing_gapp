@@ -1,6 +1,19 @@
+// @flow
+import { Subscription } from './Subscription';
+import { SubscriptionPeriod } from './Building';
 export class Pricing {
-    constructor(id, description, startDate, endDate, pricingPer1, pricingPer2,
-        pricingPer3, meterRate, latePayment10_15days, latePaymentAfter15days) {
+    id: string;
+    description: string;
+    startDate: Date;
+    endDate: Date;
+    pricingPer1: number;
+    pricingPer2: number;
+    pricingPer3: number;
+    meterRate: number;
+    latePayment10_15days: number;
+    latePaymentAfter15days: number;
+    constructor(id: string, description: string, startDate: Date, endDate: Date, pricingPer1: number, pricingPer2: number,
+        pricingPer3: number, meterRate: number, latePayment10_15days: number, latePaymentAfter15days: number) {
         this.id = id;
         this.description = description;
         this.startDate = startDate;
@@ -13,7 +26,7 @@ export class Pricing {
         this.latePaymentAfter15days = latePaymentAfter15days;
     }
 
-    rateSubscription(subscription, periodList) {
+    rateSubscription(subscription: Subscription, periodList: Array<SubscriptionPeriod>) {
         let monthlyRental = 0;
         let meterCharge = 0;
         for (let i = 0; i < periodList.length; i++) {
@@ -34,19 +47,24 @@ export class Pricing {
         return new Charge(subscription, monthlyRental, meterCharge);
     }
 
-    rateLatePayment(balanceAmount, paymentDay) {
-        if (balanceAmount <= 0) {
-            return 0;
-        } else if (paymentDay > 15) {
-            return this.latePaymentAfter15days;
-        } else if (paymentDay > 10) {
-            return this.latePayment10_15days;
+    rateLatePayment(balanceAmount: number, paymentDay: number) {
+        if (balanceAmount > 0) {
+            if (paymentDay > 15) {
+                return this.latePaymentAfter15days;
+            } else if (paymentDay > 10) {
+                return this.latePayment10_15days;
+            }
         }
+        return 0;
     }
 }
 
 export class Charge {
-    constructor(subscription, monthlyFee, meterCharge) {
+    subscription: Subscription;
+    monthlyFee: number;
+    meterCharge: number;
+    total: number;
+    constructor(subscription: Subscription, monthlyFee: number, meterCharge: number) {
         this.subscription = subscription;
         this.monthlyFee = monthlyFee;
         this.meterCharge = meterCharge;
