@@ -1,23 +1,30 @@
+// @flow
 import { DateUtil } from '../../shared/DateUtil';
 import {
     ExceptionLogger
 } from '../../shared/ExceptionLogger';
+import { Subscription } from './Subscription';
 export class Building {
-    constructor(id, type, maxOccupants, meterReadingList) {
+    id: string;
+    type: string;
+    maxOccupants: number;
+    meterReadingList: Array<MeterReading>;
+    subscriptionList: Array<Subscription>;
+    periodList: Array<SubscriptionPeriod>;
+    constructor(id: string, type: string, maxOccupants: number, meterReadingList: Array<MeterReading>) {
         this.id = id;
         this.type = type;
         this.maxOccupants = maxOccupants;
 
         this.meterReadingList = meterReadingList;
         this.subscriptionList = [];
-        this.periodList = undefined;
     }
 
-    addSubscription(subscription) {
+    addSubscription(subscription: Subscription) {
         this.subscriptionList.push(subscription);
     }
 
-    buildPeriod(startDate, endDate) {
+    buildPeriod(startDate: Date, endDate: Date) {
         let datesList = [startDate, DateUtil.incrementDay(endDate)];
         for (let i = 0; i < this.subscriptionList.length; i++) {
             this.subscriptionList[i].calculateBillingPeriod(startDate, endDate);
@@ -48,7 +55,7 @@ export class Building {
         }
     }
 
-    getMeterForBuildingPeriod(startDate, endDate) {
+    getMeterForBuildingPeriod(startDate: Date, endDate: Date) {
         let result = 0;
         for (let i = 0; i < this.meterReadingList.length; i++) {
             if (this.meterReadingList[i].startDate <= endDate && this.meterReadingList[i].endDate >= startDate) {
@@ -63,7 +70,7 @@ export class Building {
         return result;
     }
 
-    countSubscription(startDate, endDate) {
+    countSubscription(startDate: Date, endDate: Date) {
         let count = 0;
         for (let i = 0; i < this.subscriptionList.length; i++) {
             if (this.subscriptionList[i].startDate <= startDate && this.subscriptionList[i].endDate >= endDate) {
@@ -75,7 +82,10 @@ export class Building {
 }
 
 export class MeterReading {
-    constructor(startDate, endDate, value) {
+    startDate: Date;
+    endDate: Date;
+    value: number;
+    constructor(startDate: Date, endDate: Date, value: number) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.value = value;
@@ -83,7 +93,12 @@ export class MeterReading {
 }
 
 export class SubscriptionPeriod {
-    constructor(startDate, endDate, count, proration, meterValue) {
+    startDate: Date;
+    endDate: Date;
+    count: number;
+    proration: number;
+    meterValue: number;
+    constructor(startDate: Date, endDate: Date, count: number, proration: number, meterValue: number) {
         this.startDate = startDate;
         this.endDate = endDate;
         this.count = count;

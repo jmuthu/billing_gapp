@@ -19,8 +19,6 @@ export class Subscription {
         this.endDate = endDate;
         this.billingStart = startDate;
         this.billingEnd = endDate;
-        this.pricing = undefined;
-        this.building = undefined;
     }
 
     calculateBillingPeriod(startDate: Date, endDate: Date) {
