@@ -5,7 +5,7 @@ const concat = require('gulp-concat');
 const rollup = require('rollup').rollup;
 const rollupBabel = require('rollup-plugin-babel');
 
-gulp.task('build-es6', function() {
+gulp.task('build-es6', function () {
     return rollup({
         entry: 'experimental/main/js/com/github/jmuthu/billing/application/BillingService.js',
         plugins: [
@@ -13,11 +13,11 @@ gulp.task('build-es6', function() {
                 exclude: 'node_modules/**',
                 babelrc: false,
                 presets: ['es2015-rollup'],
-                plugins: ['remove-comments'],
+                plugins: ['remove-comments', 'transform-flow-strip-types'],
                 generatorOpts: { quotes: 'single' }
             })
         ]
-    }).then(function(bundle) {
+    }).then(function (bundle) {
         return bundle.write({
             dest: 'built/billing_gapp_es6.js'
         });
