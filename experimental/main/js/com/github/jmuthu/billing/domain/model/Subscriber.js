@@ -65,12 +65,8 @@ export class Subscriber {
                 }
             }
         }
-        if (this.balance.amount <= 0 || this.lateFeePricing === undefined) {
-            // No late fee
-        } else if (firstPaymentDay > 15) {
-            this.currentBill.lateFee = this.lateFeePricing.latePaymentAfter15days;
-        } else if (firstPaymentDay > 10) {
-            this.currentBill.lateFee = this.lateFeePricing.latePayment10_15days;
+        if (this.lateFeePricing !== undefined) {
+            this.currentBill.lateFee = this.lateFeePricing.rateLatePayment(this.balance.amount, firstPaymentDay);
         }
     }
 }

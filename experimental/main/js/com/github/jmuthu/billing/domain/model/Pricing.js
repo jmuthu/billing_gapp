@@ -33,6 +33,16 @@ export class Pricing {
         meterCharge = Math.round(meterCharge);
         return new Charge(subscription, monthlyRental, meterCharge);
     }
+
+    rateLatePayment(balanceAmount, paymentDay) {
+        if (balanceAmount <= 0) {
+            return 0;
+        } else if (paymentDay > 15) {
+            return this.latePaymentAfter15days;
+        } else if (paymentDay > 10) {
+            return this.latePayment10_15days;
+        }
+    }
 }
 
 export class Charge {
