@@ -146,6 +146,9 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
 
     storeBills(subscriberList: Array<Subscriber>, month: number, year: number) {
         let sheetName = 'Bill - ' + (month + 1) + '/' + year;
+        if (subscriberList.length === 1 && subscriberList[0].status === 'Closed') {
+            sheetName = 'FS - ' + subscriberList[0].contact.name;
+        }
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
             throw new Exception('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
         }
@@ -251,10 +254,6 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
 
     updateBalance(subscriberList: Array<Subscriber>, month: number, year: number) {
         let heading = new Date(year, month, DateUtil.daysInMonth(month, year), 0, 0, 0, 0);
-        /*if (settlementDate !== undefined) {
-            heading = settlementSubscriberId + ' - ' + settlementDate.toDateString();
-        }
-        */
         let balanceSheet = super.spreadSheet().getSheetByName('Balance');
         balanceSheet.insertColumnAfter(1);
         let maxRows = balanceSheet.getLastRow();
@@ -262,6 +261,9 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         if (subscriberList.length == 1) {
             let rowIndex = subscriberList[0].balance.id == -1 ?
                 ++maxRows : subscriberList[0].balance.id;
+            if (subscriberList[0].status === 'Closed') {
+                heading = 'Settlement';
+            }
             balanceSheet.getRange(1, 2).setValue(heading);
             balanceSheet.getRange(rowIndex, 1, 1, 2).setValues([
                 [subscriberList[0].id, subscriberList[0].balance.amount]]);
