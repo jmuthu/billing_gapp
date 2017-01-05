@@ -1,7 +1,9 @@
 [ignore]
 
 [include]
-./experimental/
+experimental/
+
 [libs]
+decl/
 
 [options]
