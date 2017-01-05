@@ -9,26 +9,29 @@ import { Balance } from '../../../domain/model/subscriber/Balance';
 import { Building } from '../../../domain/model/building/Building';
 
 export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
-    findBillableSubscribers(startDate: Date, endDate: Date) {
-        let subscriberData = super.spreadSheet().getSheetByName('Subscriber').getDataRange().getValues();
+    subscriberData: any[][];
+    subscriptionData: any[][];
+
+    findAll(startDate: Date, endDate: Date) {
+        this.subscriberData = super.spreadSheet().getSheetByName('Subscriber').getDataRange().getValues();
         let subscriberList = [];
         let subscriptionMap = this.findAllSubscription(startDate, endDate);
         let balanceMap = this.findAllBalance(startDate, endDate);
         let arMap = this.findAllAccountReceivable(startDate, endDate);
-        for (let i = 1; i < subscriberData.length; i++) {
+        for (let i = 1; i < this.subscriberData.length; i++) {
             let contact = new Contact(
-                subscriberData[i][1],
-                subscriberData[i][2],
-                subscriberData[i][5],
-                subscriberData[i][6]
+                this.subscriberData[i][1],
+                this.subscriberData[i][2],
+                this.subscriberData[i][5],
+                this.subscriberData[i][6]
             );
             let subscriber = new Subscriber(
-                subscriberData[i][0],
-                subscriberData[i][3],
-                subscriberData[i][4],
-                subscriberData[i][7],
-                subscriberData[i][8],
-                subscriberData[i][9]
+                this.subscriberData[i][0],
+                this.subscriberData[i][3],
+                this.subscriberData[i][4],
+                this.subscriberData[i][7],
+                this.subscriberData[i][8],
+                this.subscriberData[i][9]
             );
             subscriber.setContact(contact);
             let balance = balanceMap[subscriber.id];
@@ -45,6 +48,15 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
             subscriberList.push(subscriber);
         }
         return subscriberList;
+    }
+
+    find(subscriberId: string, startDate: Date, endDate: Date): Subscriber {
+        let subscriberList = this.findAll(startDate, endDate)
+        for (let i = 0; i < subscriberList.length; i++) {
+            if (subscriberId === subscriberList[i].id) {
+                return subscriberList[i];
+            }
+        }
     }
 
     findAllBalance(startDate: Date, endDate: Date) {
@@ -84,15 +96,15 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
     }
 
     findAllSubscription(startDate: Date, endDate: Date) {
-        let subscriptionData = super.spreadSheet().getSheetByName('Subscription').getDataRange().getValues();
+        this.subscriptionData = super.spreadSheet().getSheetByName('Subscription').getDataRange().getValues();
         let subscriptionMap = {};
-        for (let i = 1; i < subscriptionData.length; i++) {
+        for (let i = 1; i < this.subscriptionData.length; i++) {
             let subscription = new Subscription(
-                subscriptionData[i][0],
-                subscriptionData[i][2],
-                subscriptionData[i][3],
-                subscriptionData[i][4],
-                subscriptionData[i][5]
+                this.subscriptionData[i][0],
+                this.subscriptionData[i][2],
+                this.subscriptionData[i][3],
+                this.subscriptionData[i][4],
+                this.subscriptionData[i][5]
             );
 
             if (subscription.startDate <= endDate && startDate <= subscription.endDate) {
@@ -100,10 +112,10 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 //if (subscription.Pricing === undefined) {
                 //  throwException('Error! Invalid subscription pricing configuration for ' + subscription.SubscriptionId);
                 //}
-                if (subscriptionMap[subscriptionData[i][1]] === undefined) {
-                    subscriptionMap[subscriptionData[i][1]] = [subscription];
+                if (subscriptionMap[this.subscriptionData[i][1]] === undefined) {
+                    subscriptionMap[this.subscriptionData[i][1]] = [subscription];
                 } else {
-                    subscriptionMap[subscriptionData[i][1]].push(subscription);
+                    subscriptionMap[this.subscriptionData[i][1]].push(subscription);
                 }
             }
         }
@@ -132,7 +144,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return arMap;
     }
 
-    storeBills(subscriberList: Array<Subscriber>, buildingMap: { [id: string]: Building }, month: number, year: number) {
+    storeBills(subscriberList: Array<Subscriber>, month: number, year: number) {
         let sheetName = 'Bill - ' + (month + 1) + '/' + year;
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
             throw new Exception('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
@@ -159,10 +171,15 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         ];
         let buildingPeriodBuffer = [];
         buildingPeriodBuffer[0] = ['Building ID', 'Start Date', 'End Date', 'Proration', 'Subscriber Count', 'Meter value'];
-
+        let buildingMap = {};
         for (let i = 0; i < subscriberList.length; i++) {
             if (subscriberList[i].currentBill !== undefined) {
                 this.addBill(buffer, subscriberList[i]);
+                if (subscriberList[i].subscriptionList !== undefined) {
+                    for (let j = 0; j < subscriberList[i].subscriptionList.length; j++) {
+                        buildingMap[subscriberList[i].subscriptionList[j].buildingId] = subscriberList[i].subscriptionList[j].building;
+                    }
+                }
             }
         }
 
@@ -242,25 +259,41 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         balanceSheet.insertColumnAfter(1);
         let maxRows = balanceSheet.getLastRow();
 
-        /*if (settlementSubscriberId !== undefined) {
-            let rowIndex = balanceMap[settlementSubscriberId].Index == -1 ?
-                ++maxRows : balanceMap[settlementSubscriberId].Index;
+        if (subscriberList.length == 1) {
+            let rowIndex = subscriberList[0].balance.id == -1 ?
+                ++maxRows : subscriberList[0].balance.id;
             balanceSheet.getRange(1, 2).setValue(heading);
             balanceSheet.getRange(rowIndex, 1, 1, 2).setValues([
-                [settlementSubscriberId, balanceMap[settlementSubscriberId].Amount]]);
+                [subscriberList[0].id, subscriberList[0].balance.amount]]);
         } else {
-        */
-        let values = [];
-        values[0] = ['Subscriber ID', heading];
+            let values = [];
+            values[0] = ['Subscriber ID', heading];
 
-        for (let i = 0; i < subscriberList.length; i++) {
-            if (subscriberList[i].balance.id === -1) {
-                values[maxRows] = [subscriberList[i].id, subscriberList[i].balance.amount];
-                maxRows++;
-            } else {
-                values[subscriberList[i].balance.id - 1] = [subscriberList[i].id, subscriberList[i].balance.amount];
+            for (let i = 0; i < subscriberList.length; i++) {
+                if (subscriberList[i].balance.id === -1) {
+                    values[maxRows] = [subscriberList[i].id, subscriberList[i].balance.amount];
+                    maxRows++;
+                } else {
+                    values[subscriberList[i].balance.id - 1] = [subscriberList[i].id, subscriberList[i].balance.amount];
+                }
+            }
+            balanceSheet.getRange(1, 1, maxRows, 2).setValues(values);
+        }
+
+    }
+
+    store(subscriber: Subscriber) {
+        for (let i = 0; i < this.subscriberData.length; i++) {
+            if (this.subscriberData[i][0] === subscriber.id) {
+                super.spreadSheet().getSheetByName('Subscriber').getRange(i + 1, 9).setValue(subscriber.status);
             }
         }
-        balanceSheet.getRange(1, 1, maxRows, 2).setValues(values);
+        for (let i = 0; i < this.subscriptionData.length; i++) {
+            for (let j = 0; j < subscriber.subscriptionList.length; j++) {
+                if (this.subscriptionData[i][0] === subscriber.subscriptionList[j].id) {
+                    super.spreadSheet().getSheetByName('Subscription').getRange(i, 6).setValue(subscriber.subscriptionList[j].endDate);
+                }
+            }
+        }
     }
 }

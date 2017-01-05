@@ -4,6 +4,8 @@ import { Building } from '../building/Building';
 export interface SubscriberRepository {
     getLock(): Lock;
     releaseLock(lock: Lock): void;
-    findBillableSubscribers(startDate: Date, endDate: Date): Array<Subscriber>;
-    storeBills(subscriberList: Array<Subscriber>, buildingMap: { [id: string]: Building }, month: number, year: number): void;
+    findAll(startDate: Date, endDate: Date): Array<Subscriber>;
+    find(subscriberId: string, startDate: Date, endDate: Date): Subscriber;
+    storeBills(subscriberList: Array<Subscriber>, month: number, year: number): void;
+    store(subscriber: Subscriber): void;
 }

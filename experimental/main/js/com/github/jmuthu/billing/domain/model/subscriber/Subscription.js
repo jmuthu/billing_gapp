@@ -56,4 +56,11 @@ export class Subscription {
         }
         return this.pricing.rateSubscription(this, this.building.periodList);
     }
+
+    cancel(cancelDate: Date) {
+        if (this.endDate > cancelDate) {
+            this.endDate = cancelDate;
+            this.billingEnd = cancelDate;
+        }
+    }
 }

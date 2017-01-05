@@ -14,7 +14,10 @@ export function test() {
     sheet = spreadSheet.getSheetByName('Bill - 10/2016');
     if (sheet != null) spreadSheet.deleteSheet(sheet);
 
-    sheet = spreadSheet.getSheetByName('FS - Siva');
+    sheet = spreadSheet.getSheetByName('Bill - 12/2016');
+    if (sheet != null) spreadSheet.deleteSheet(sheet);
+
+    sheet = spreadSheet.getSheetByName('Bill - 1/2017');
     if (sheet != null) spreadSheet.deleteSheet(sheet);
 
     spreadSheet.getSheetByName('Subscriber').getRange('I5').setValue('Active');
@@ -29,4 +32,6 @@ export function test() {
     var billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
     billingService.runBilling('October', 2016);
     billingService.runBilling('November', 2016);
+    billingService.runBilling('December', 2016);
+    billingService.finalizeSettlement('Siva(5)', 9);
 }

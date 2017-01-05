@@ -20,6 +20,7 @@ export class Bill {
     }
 
     getTotalDue() {
-        return this.totalCharge + this.previousDue - this.payment + this.lateFee - this.adjustment;
+        return this.totalCharge + this.previousDue - this.payment +
+            this.lateFee - this.adjustment - this.advance;
     }
 }

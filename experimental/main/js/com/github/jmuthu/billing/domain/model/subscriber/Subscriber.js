@@ -77,6 +77,19 @@ export class Subscriber {
         this.balance.amount = this.currentBill.getTotalDue();
     }
 
+    settle(settlementDate: Date, startDate: Date, endDate: Date) {
+        if (this.subscriptionList !== undefined) {
+            for (let i = 0; i < this.subscriptionList.length; i++) {
+                this.subscriptionList[i].cancel(settlementDate);
+            }
+        }
+        this.runBilling(startDate, endDate);
+        // Adjust with advance as this is the final bill
+        this.currentBill.advance = this.advance;
+        this.balance.amount = this.currentBill.getTotalDue();
+        this.status = 'Closed';
+    }
+
     computeAR() {
         let firstPaymentDay = 30;
         if (this.arList !== undefined) {
