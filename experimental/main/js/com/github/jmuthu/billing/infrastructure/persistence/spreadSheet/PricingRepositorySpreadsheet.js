@@ -4,7 +4,7 @@ import {
 } from './SpreadsheetRepository';
 import {
     Pricing
-} from '../../../domain/model/Pricing';
+} from '../../../domain/model/pricing/Pricing';
 export class PricingRepositorySpreadsheet extends SpreadsheetRepository {
     constructor() {
         super();

@@ -1,6 +1,6 @@
 // @flow
-import { Pricing } from './Pricing';
-import { Building } from './Building';
+import { Pricing } from '../pricing/Pricing';
+import { Building } from '../building/Building';
 export class Subscription {
     id: string;
     pricingId: string;

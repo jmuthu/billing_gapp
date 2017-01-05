@@ -1,5 +1,5 @@
 // @flow
-import { Charge } from './Pricing';
+import { Charge } from '../pricing/Pricing';
 export class Bill {
     payment: number;
     lateFee: number;

@@ -1,12 +1,12 @@
 // @flow
 import { SpreadsheetRepository } from './SpreadsheetRepository';
 import { Exception } from '../../../shared/Exception';
-import { Subscriber, Contact } from '../../../domain/model/Subscriber';
-import { Subscription } from '../../../domain/model/Subscription';
-import { AccountReceivable } from '../../../domain/model/AccountReceivable';
+import { Subscriber, Contact } from '../../../domain/model/subscriber/Subscriber';
+import { Subscription } from '../../../domain/model/subscriber/Subscription';
+import { AccountReceivable } from '../../../domain/model/subscriber/AccountReceivable';
 import { DateUtil } from '../../../shared/DateUtil';
-import { Balance } from '../../../domain/model/Balance';
-import { Building } from '../../../domain/model/Building';
+import { Balance } from '../../../domain/model/subscriber/Balance';
+import { Building } from '../../../domain/model/building/Building';
 
 export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
     findBillableSubscribers(startDate: Date, endDate: Date) {

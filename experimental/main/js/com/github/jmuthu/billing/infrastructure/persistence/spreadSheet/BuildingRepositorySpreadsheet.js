@@ -2,7 +2,7 @@
 import {
     SpreadsheetRepository
 } from './SpreadsheetRepository';
-import { Building, MeterReading } from '../../../domain/model/Building';
+import { Building, MeterReading } from '../../../domain/model/building/Building';
 export class BuildingRepositorySpreadsheet extends SpreadsheetRepository {
     findAll(startDate: Date, endDate: Date) {
         let buildingMap = {};

@@ -1,9 +1,9 @@
 // @flow
-import { DateUtil } from '../../shared/DateUtil';
+import { DateUtil } from '../../../shared/DateUtil';
 import {
     Exception
-} from '../../shared/Exception';
-import { Subscription } from './Subscription';
+} from '../../../shared/Exception';
+import { Subscription } from '../subscriber/Subscription';
 export class Building {
     id: string;
     type: string;

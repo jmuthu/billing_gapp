@@ -2,7 +2,7 @@
 import { Subscription } from './Subscription';
 import { AccountReceivable } from './AccountReceivable';
 import { Balance } from './Balance';
-import { Pricing } from './Pricing';
+import { Pricing } from '../pricing/Pricing';
 import { Bill } from './Bill';
 
 export class Contact {
