@@ -6,6 +6,7 @@ import {
     Pricing
 } from '../../../domain/model/pricing/Pricing';
 export class PricingRepositorySpreadsheet extends SpreadsheetRepository {
+    pricingMap: { [id: string]: Pricing };
     constructor() {
         super();
         this.pricingMap = this.findAll();
