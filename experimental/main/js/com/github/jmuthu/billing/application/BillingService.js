@@ -62,22 +62,26 @@ export class BillingService {
 
         let startDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
         let endDate = new Date(date.getFullYear(), date.getMonth(), DateUtil.daysInMonth(date.getMonth(), date.getFullYear()), 0, 0, 0, 0);
-
-        let subscriberList = this.fetchSubscribers(startDate, endDate);
-        let settlementSubscriber: Subscriber;
-        for (let i = 0; i < subscriberList.length; i++) {
-            if (subscriberId === subscriberList[i].id) {
-                settlementSubscriber = subscriberList[i];
+        try {
+            let subscriberList = this.fetchSubscribers(startDate, endDate);
+            let settlementSubscriber: Subscriber;
+            for (let i = 0; i < subscriberList.length; i++) {
+                if (subscriberId === subscriberList[i].id) {
+                    settlementSubscriber = subscriberList[i];
+                }
             }
-        }
-        if (settlementSubscriber === undefined) {
-            throw new Exception(`Cannot find subscriber ${subscriberId}`);
-        }
-        settlementSubscriber.settle(settlementDate, startDate, endDate);
-        this.subscriberRepository.storeBills([settlementSubscriber], date.getMonth(), date.getFullYear());
-        this.subscriberRepository.store(settlementSubscriber);
+            if (settlementSubscriber === undefined) {
+                throw new Exception(`Cannot find subscriber ${subscriberId}`);
+            }
+            settlementSubscriber.settle(settlementDate, startDate, endDate);
+            this.subscriberRepository.storeBills([settlementSubscriber], date.getMonth(), date.getFullYear());
+            this.subscriberRepository.store(settlementSubscriber);
 
-        Logger.log(`Settlement ended for ${subscriberId}`);
+            Logger.log(`Settlement ended for ${subscriberId}`);
+        } catch (exception) {
+            Logger.log(exception.message);
+            throw exception.message;
+        }
     }
 
     fetchSubscribers(startDate: Date, endDate: Date): Array<Subscriber> {
