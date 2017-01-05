@@ -7,7 +7,7 @@ const rollupBabel = require('rollup-plugin-babel');
 
 gulp.task('build-es6', function () {
     return rollup({
-        entry: 'experimental/main/js/com/github/jmuthu/billing/application/BillingService.js',
+        entry: 'experimental/test/js/com/github/jmuthu/billing/application/BillingServiceTest.js',
         plugins: [
             rollupBabel({
                 exclude: 'node_modules/**',
