@@ -20,6 +20,9 @@ export function test() {
     sheet = spreadSheet.getSheetByName('Bill - 1/2017');
     if (sheet != null) spreadSheet.deleteSheet(sheet);
 
+    sheet = spreadSheet.getSheetByName('FS - Siva');
+    if (sheet != null) spreadSheet.deleteSheet(sheet);
+
     spreadSheet.getSheetByName('Subscriber').getRange('I5').setValue('Active');
 
     var date = new Date(2018, 0, 1, 0, 0, 0, 0);
