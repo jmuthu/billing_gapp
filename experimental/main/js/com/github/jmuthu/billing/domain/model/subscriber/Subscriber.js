@@ -11,7 +11,11 @@ export class Contact {
     phone: string;
     presentAddress: string;
     permanentAddress: string;
-    constructor(name: string, phone: string, presentAddress: string, permanentAddress: string) {
+
+    constructor(name: string,
+        phone: string,
+        presentAddress: string,
+        permanentAddress: string) {
         this.name = name;
         this.phone = phone;
         this.presentAddress = presentAddress;
@@ -32,7 +36,14 @@ export class Subscriber {
     arList: Array<AccountReceivable>;
     subscriptionList: Array<Subscription>;
     currentBill: Bill;
-    constructor(id: string, isIndividual: string, organizationName: string, advance: number, status: string, lateFeePricingId: string) {
+
+    constructor(id: string,
+        isIndividual: string,
+        organizationName: string,
+        advance: number,
+        status: string,
+        lateFeePricingId: string) {
+
         this.id = id;
         this.isIndividual = isIndividual;
         this.organizationName = organizationName;
@@ -61,54 +72,26 @@ export class Subscriber {
         this.lateFeePricing = lateFeePricing;
     }
 
-    runBilling(billDateRange: DateRange) {
-        if (this.status != 'Active') {
-            return;
-        }
-        this.currentBill = new Bill();
-        if (this.subscriptionList !== undefined) {
-            for (let i = 0; i < this.subscriptionList.length; i++) {
-                let charge = this.subscriptionList[i].computeCharges(billDateRange);
-                this.currentBill.chargeList.push(charge);
-                this.currentBill.totalCharge += charge.total;
-            }
-        }
-        this.currentBill.previousDue = this.balance.amount;
-        this.computeAR();
-        this.balance.amount = this.currentBill.getTotalDue();
-    }
-
     settle(settlementDate: Date, billDateRange: DateRange) {
         if (this.subscriptionList !== undefined) {
             for (let i = 0; i < this.subscriptionList.length; i++) {
                 this.subscriptionList[i].cancel(settlementDate);
             }
         }
-        this.runBilling(billDateRange);
-        // Adjust with advance as this is the final bill
-        this.currentBill.advance = this.advance;
-        this.balance.amount = this.currentBill.getTotalDue();
+        this.runBilling(billDateRange, true);
+
         this.status = 'Closed';
     }
 
-    computeAR() {
-        let firstPaymentDay = 30;
-        if (this.arList !== undefined) {
-            for (let i = 0; i < this.arList.length; i++) {
-                if ('Payment' == this.arList[i].type) {
-                    this.currentBill.payment += this.arList[i].amount;
-                } else {
-                    this.currentBill.adjustment += this.arList[i].amount;
-                }
-                let day = this.arList[i].createdDate.getDate();
-                if (this.arList[i].amount > 0 && day < firstPaymentDay) {
-                    firstPaymentDay = day;
-                }
-            }
+    runBilling(billDateRange: DateRange, isFinalBill: boolean = false) {
+        if (this.status != 'Active') {
+            return;
         }
-        if (this.lateFeePricing !== undefined) {
-            this.currentBill.lateFee = this.lateFeePricing.rateLatePayment(this.balance.amount, firstPaymentDay);
-        }
+        this.currentBill = new Bill(billDateRange,
+            this.subscriptionList,
+            this.arList,
+            this.lateFeePricing,
+            isFinalBill);
+        this.currentBill.runBilling(this.balance, this.advance);
     }
 }
-
