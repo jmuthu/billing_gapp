@@ -1,4 +1,5 @@
 // @flow
+import { Exception } from '../shared/Exception';
 export class DateUtil {
     static getMonthFromString(month) {
         let monthList = {
@@ -54,5 +55,27 @@ export class DateUtil {
         let noOfDays = (actualEnd.getTime() - actualStart.getTime()) / 86400000 + 1;
         let proration = noOfDays / this.daysInMonth(startDate.getMonth(), startDate.getYear());
         return proration;
+    }
+}
+
+export class DateRange {
+    startDate: Date;
+    endDate: Date;
+    constructor(startDate: Date, endDate: Date) {
+        if (startDate > endDate) {
+            throw new Exception(`Start date ${startDate.toDateString()} is greater than end date ${endDate.toDateString()}`);
+        }
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+    static createMonthRange(month: number, year: number) {
+        return new DateRange(new Date(year, month, 1, 0, 0, 0, 0),
+            new Date(year, month, DateUtil.daysInMonth(month, year), 0, 0, 0, 0));
+    }
+    isWithinRange(date: Date) {
+        if (date >= this.startDate && date <= this.endDate) {
+            return true;
+        }
+        return false;
     }
 }

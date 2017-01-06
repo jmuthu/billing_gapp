@@ -2,7 +2,7 @@
 import { SubscriberRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/SubscriberRepositorySpreadsheet';
 import { BuildingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/BuildingRepositorySpreadsheet';
 import { PricingRepositorySpreadsheet } from '../infrastructure/persistence/spreadSheet/PricingRepositorySpreadsheet';
-import { DateUtil } from '../shared/DateUtil';
+import { DateUtil, DateRange } from '../shared/DateUtil';
 import { Exception } from '../shared/Exception';
 import { Subscriber } from '../domain/model/subscriber/Subscriber';
 import { Building } from '../domain/model/building/Building';
@@ -29,21 +29,19 @@ export class BillingService {
     runBilling(monthName: string, year: number) {
         Logger.log(`Billing started for ${monthName}, ${year}`);
         let month = DateUtil.getMonthFromString(monthName);
-
-        let startDate = new Date(year, month, 1, 0, 0, 0, 0);
-        let endDate = new Date(year, month, DateUtil.daysInMonth(month, year), 0, 0, 0, 0);
+        let billDateRange = DateRange.createMonthRange(month, year);
         let date = new Date();
 
-        if (date < endDate) {
+        if (date < billDateRange.endDate) {
             // You can still run on the last day of month
-            throw 'Cannot run billing for periods ending in future! ' + endDate.toDateString() + ' is in future';
+            throw 'Cannot run billing for periods ending in future! ' + billDateRange.endDate.toDateString() + ' is in future';
         }
         try {
             let lock = this.subscriberRepository.getLock();
 
-            let subscriberList = this.fetchSubscribers(startDate, endDate);
+            let subscriberList = this.fetchSubscribers(billDateRange);
             for (let i = 0; i < subscriberList.length; i++) {
-                subscriberList[i].runBilling(startDate, endDate);
+                subscriberList[i].runBilling(billDateRange);
             }
             this.subscriberRepository.storeBills(subscriberList, month, year);
 
@@ -59,11 +57,10 @@ export class BillingService {
         Logger.log(`Settlement started for ${subscriberId}`);
         let date = new Date();
         let settlementDate = new Date(date.getFullYear(), date.getMonth(), settlementDay, 0, 0, 0, 0);
+        let billDateRange = DateRange.createMonthRange(date.getMonth(), date.getFullYear());
 
-        let startDate = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
-        let endDate = new Date(date.getFullYear(), date.getMonth(), DateUtil.daysInMonth(date.getMonth(), date.getFullYear()), 0, 0, 0, 0);
         try {
-            let subscriberList = this.fetchSubscribers(startDate, endDate);
+            let subscriberList = this.fetchSubscribers(billDateRange);
             let settlementSubscriber: Subscriber;
             for (let i = 0; i < subscriberList.length; i++) {
                 if (subscriberId === subscriberList[i].id) {
@@ -73,7 +70,7 @@ export class BillingService {
             if (settlementSubscriber === undefined) {
                 throw new Exception(`Cannot find subscriber ${subscriberId}`);
             }
-            settlementSubscriber.settle(settlementDate, startDate, endDate);
+            settlementSubscriber.settle(settlementDate, billDateRange);
             this.subscriberRepository.storeBills([settlementSubscriber], date.getMonth(), date.getFullYear());
             this.subscriberRepository.store(settlementSubscriber);
 
@@ -84,9 +81,9 @@ export class BillingService {
         }
     }
 
-    fetchSubscribers(startDate: Date, endDate: Date): Array<Subscriber> {
-        let subscriberList = this.subscriberRepository.findAll(startDate, endDate);
-        let buildingMap = this.buildingRepository.findAll(startDate, endDate);
+    fetchSubscribers(billDateRange: DateRange): Array<Subscriber> {
+        let subscriberList = this.subscriberRepository.findAll(billDateRange);
+        let buildingMap = this.buildingRepository.findAll(billDateRange);
         for (let i = 0; i < subscriberList.length; i++) {
             let subscriber = subscriberList[i];
             subscriber.setLateFeePricing(this.pricingRepository.find(subscriber.lateFeePricingId));

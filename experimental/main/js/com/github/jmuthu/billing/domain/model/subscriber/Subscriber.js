@@ -4,6 +4,7 @@ import { AccountReceivable } from './AccountReceivable';
 import { Balance } from './Balance';
 import { Pricing } from '../pricing/Pricing';
 import { Bill } from './Bill';
+import { DateUtil, DateRange } from '../../../shared/DateUtil';
 
 export class Contact {
     name: string;
@@ -60,14 +61,14 @@ export class Subscriber {
         this.lateFeePricing = lateFeePricing;
     }
 
-    runBilling(startDate: Date, endDate: Date) {
+    runBilling(billDateRange: DateRange) {
         if (this.status != 'Active') {
             return;
         }
         this.currentBill = new Bill();
         if (this.subscriptionList !== undefined) {
             for (let i = 0; i < this.subscriptionList.length; i++) {
-                let charge = this.subscriptionList[i].computeCharges(startDate, endDate);
+                let charge = this.subscriptionList[i].computeCharges(billDateRange);
                 this.currentBill.chargeList.push(charge);
                 this.currentBill.totalCharge += charge.total;
             }
@@ -77,13 +78,13 @@ export class Subscriber {
         this.balance.amount = this.currentBill.getTotalDue();
     }
 
-    settle(settlementDate: Date, startDate: Date, endDate: Date) {
+    settle(settlementDate: Date, billDateRange: DateRange) {
         if (this.subscriptionList !== undefined) {
             for (let i = 0; i < this.subscriptionList.length; i++) {
                 this.subscriptionList[i].cancel(settlementDate);
             }
         }
-        this.runBilling(startDate, endDate);
+        this.runBilling(billDateRange);
         // Adjust with advance as this is the final bill
         this.currentBill.advance = this.advance;
         this.balance.amount = this.currentBill.getTotalDue();

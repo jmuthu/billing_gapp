@@ -1,5 +1,6 @@
 // @flow
 import { Building } from './Building';
+import { DateUtil, DateRange } from '../../../shared/DateUtil';
 export interface BuildingRepository {
-    findAll(startDate: Date, endDate: Date): { [id: string]: Building };
+    findAll(dateRange: DateRange): { [id: string]: Building };
 }

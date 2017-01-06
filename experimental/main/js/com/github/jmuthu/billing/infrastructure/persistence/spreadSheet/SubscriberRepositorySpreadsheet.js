@@ -4,20 +4,20 @@ import { Exception } from '../../../shared/Exception';
 import { Subscriber, Contact } from '../../../domain/model/subscriber/Subscriber';
 import { Subscription } from '../../../domain/model/subscriber/Subscription';
 import { AccountReceivable } from '../../../domain/model/subscriber/AccountReceivable';
-import { DateUtil } from '../../../shared/DateUtil';
 import { Balance } from '../../../domain/model/subscriber/Balance';
 import { Building } from '../../../domain/model/building/Building';
+import { DateUtil, DateRange } from '../../../shared/DateUtil';
 
 export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
     subscriberData: any[][];
     subscriptionData: any[][];
 
-    findAll(startDate: Date, endDate: Date) {
+    findAll(dateRange: DateRange) {
         this.subscriberData = super.spreadSheet().getSheetByName('Subscriber').getDataRange().getValues();
         let subscriberList = [];
-        let subscriptionMap = this.findAllSubscription(startDate, endDate);
-        let balanceMap = this.findAllBalance(startDate, endDate);
-        let arMap = this.findAllAccountReceivable(startDate, endDate);
+        let subscriptionMap = this.findAllSubscription(dateRange);
+        let balanceMap = this.findAllBalance(dateRange);
+        let arMap = this.findAllAccountReceivable(dateRange);
         for (let i = 1; i < this.subscriberData.length; i++) {
             let contact = new Contact(
                 this.subscriberData[i][1],
@@ -50,8 +50,8 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return subscriberList;
     }
 
-    find(subscriberId: string, startDate: Date, endDate: Date): Subscriber {
-        let subscriberList = this.findAll(startDate, endDate)
+    find(subscriberId: string, dateRange: DateRange) {
+        let subscriberList = this.findAll(dateRange)
         for (let i = 0; i < subscriberList.length; i++) {
             if (subscriberId === subscriberList[i].id) {
                 return subscriberList[i];
@@ -59,14 +59,14 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         }
     }
 
-    findAllBalance(startDate: Date, endDate: Date) {
+    findAllBalance(dateRange: DateRange) {
         let balanceMap = {};
         let balanceData = super.spreadSheet().getSheetByName('Balance').getDataRange().getValues();
-        let previous = DateUtil.previousMonth(startDate);
+        let previous = DateUtil.previousMonth(dateRange.startDate);
         let date = new Date(previous.getFullYear(), previous.getMonth(), DateUtil.daysInMonth(previous.getMonth(), previous.getFullYear()), 0, 0, 0, 0);
         let prevBalIndex = this.findBalanceDataIndex(balanceData, date);
         if (prevBalIndex == -1) {
-            throw new Exception('Error! Missing balance information for ' + startDate.getMonth() + '/' + startDate.getFullYear());
+            throw new Exception('Error! Missing balance information for ' + dateRange.startDate.getMonth() + '/' + dateRange.startDate.getFullYear());
         }
 
         for (let i = 1; i < balanceData.length; i++) {
@@ -95,7 +95,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return colIndex;
     }
 
-    findAllSubscription(startDate: Date, endDate: Date) {
+    findAllSubscription(dateRange: DateRange) {
         this.subscriptionData = super.spreadSheet().getSheetByName('Subscription').getDataRange().getValues();
         let subscriptionMap = {};
         for (let i = 1; i < this.subscriptionData.length; i++) {
@@ -107,7 +107,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 this.subscriptionData[i][5]
             );
 
-            if (subscription.startDate <= endDate && startDate <= subscription.endDate) {
+            if (subscription.startDate <= dateRange.endDate && dateRange.startDate <= subscription.endDate) {
                 //subscription.Pricing = pricingMap[subscriptionData[i][2]];
                 //if (subscription.Pricing === undefined) {
                 //  throwException('Error! Invalid subscription pricing configuration for ' + subscription.SubscriptionId);
@@ -122,7 +122,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         return subscriptionMap;
     }
 
-    findAllAccountReceivable(startDate: Date, endDate: Date) {
+    findAllAccountReceivable(dateRange: DateRange) {
         let arData = super.spreadSheet().getSheetByName('AR').getDataRange().getValues();
         let arMap = {};
         for (let i = 1; i < arData.length; i++) {
@@ -133,7 +133,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 arData[i][4]
             );
             let arId = arData[i][3];
-            if (ar.createdDate >= startDate && ar.createdDate <= endDate) {
+            if (dateRange.isWithinRange(ar.createdDate)) {
                 if (arMap[arId]) {
                     arMap[arId].push(ar);
                 } else {

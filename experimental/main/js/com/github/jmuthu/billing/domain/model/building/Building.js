@@ -1,5 +1,5 @@
 // @flow
-import { DateUtil } from '../../../shared/DateUtil';
+import { DateUtil, DateRange } from '../../../shared/DateUtil';
 import {
     Exception
 } from '../../../shared/Exception';
@@ -24,10 +24,10 @@ export class Building {
         this.subscriptionList.push(subscription);
     }
 
-    buildPeriod(startDate: Date, endDate: Date) {
-        let datesList = [startDate, DateUtil.incrementDay(endDate)];
+    buildPeriod(dateRange: DateRange) {
+        let datesList = [dateRange.startDate, DateUtil.incrementDay(dateRange.endDate)];
         for (let i = 0; i < this.subscriptionList.length; i++) {
-            this.subscriptionList[i].calculateBillingPeriod(startDate, endDate);
+            this.subscriptionList[i].calculateBillingPeriod(dateRange);
             datesList.push(this.subscriptionList[i].billingStart);
 
             // Need to do this to sync with all start dates in period
@@ -41,7 +41,7 @@ export class Building {
             end.setDate(end.getDate() - 1);
 
             let count = this.countSubscription(dates[i], end);
-            let proration = DateUtil.calculateProration(dates[i], end, startDate);
+            let proration = DateUtil.calculateProration(dates[i], end, dateRange.startDate);
             let meterValue = 0;
             if (this.meterReadingList === undefined) {
                 if (count > 0) {

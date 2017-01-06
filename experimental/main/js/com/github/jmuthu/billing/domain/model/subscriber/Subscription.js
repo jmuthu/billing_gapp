@@ -1,6 +1,7 @@
 // @flow
 import { Pricing } from '../pricing/Pricing';
 import { Building } from '../building/Building';
+import { DateUtil, DateRange } from '../../../shared/DateUtil';
 export class Subscription {
     id: string;
     pricingId: string;
@@ -21,18 +22,18 @@ export class Subscription {
         this.billingEnd = endDate;
     }
 
-    calculateBillingPeriod(startDate: Date, endDate: Date) {
-        this.billingStart = startDate;
-        this.billingEnd = endDate;
-        if (this.startDate > startDate) {
-            if (this.endDate > endDate) {
+    calculateBillingPeriod(billDateRange: DateRange) {
+        this.billingStart = billDateRange.startDate;
+        this.billingEnd = billDateRange.endDate;
+        if (this.startDate > billDateRange.startDate) {
+            if (this.endDate > billDateRange.endDate) {
                 this.billingStart = this.startDate;
             } else {
                 this.billingStart = this.startDate;
                 this.billingEnd = this.endDate;
             }
-        } else if (this.endDate < endDate) {
-            if (this.startDate > startDate) {
+        } else if (this.endDate < billDateRange.endDate) {
+            if (this.startDate > billDateRange.startDate) {
                 this.billingStart = this.startDate;
                 this.billingEnd = this.endDate;
             } else {
@@ -50,9 +51,9 @@ export class Subscription {
         this.building.addSubscription(this);
     }
 
-    computeCharges(startDate: Date, endDate: Date) {
+    computeCharges(dateRange: DateRange) {
         if (this.building.periodList === undefined) {
-            this.building.buildPeriod(startDate, endDate);
+            this.building.buildPeriod(dateRange);
         }
         return this.pricing.rateSubscription(this, this.building.periodList);
     }
