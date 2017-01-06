@@ -108,9 +108,22 @@ declare interface Spreadsheet {
     setAnonymousAccess(anonymousReadAllowed: boolean, anonymousWriteAllowed: boolean): void;
 }
 
+declare interface Menu {
+    addItem(caption: string, functionName: string): Menu;
+    addSeparator(): Menu;
+    addSubMenu(menu: Menu): Menu;
+    addToUi(): void;
+}
+
+declare interface Ui {
+    createMenu(caption: string): Menu;
+    showModalDialog(userInterface: Object, title: string): void;
+}
+
 declare interface SpreadsheetApp {
     static flush(): void;
     static getActive(): Spreadsheet;
+    static getUi(): Ui;
 }
 
 declare interface Sheet {
@@ -192,4 +205,26 @@ declare interface Range {
     getValues(): any[][];
     setValue(value: any): Range;
     setValues(values: any[][]): Range;
+}
+
+declare interface HtmlOutput {
+    append(addedContent: string): HtmlOutput;
+    appendUntrusted(addedContent: string): HtmlOutput;
+    asTemplate(): HtmlTemplate;
+    clear(): HtmlOutput;
+    setContent(content: string): HtmlOutput;
+    setHeight(height: number): HtmlOutput;
+    setTitle(title: string): HtmlOutput;
+    setWidth(width: number): HtmlOutput;
+}
+
+declare interface HtmlService {
+    static createTemplateFromFile(filename: string): HtmlTemplate;
+}
+
+declare interface HtmlTemplate {
+    evaluate(): HtmlOutput;
+    getCode(): string;
+    getCodeWithComments(): string;
+    getRawContent(): string;
 }
