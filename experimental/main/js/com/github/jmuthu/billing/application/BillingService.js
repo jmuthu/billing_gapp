@@ -26,9 +26,8 @@ export class BillingService {
         this.pricingRepository = pricingRepository;
     }
 
-    runBilling(monthName: string, year: number) {
-        Logger.log(`Billing started for ${monthName}, ${year}`);
-        let month = DateUtil.getMonthFromString(monthName);
+    runBilling(month: number, year: number) {
+        Logger.log(`Billing started for ${month}, ${year}`);
         let billDateRange = DateRange.createMonthRange(month, year);
         let date = new Date();
 
@@ -46,7 +45,7 @@ export class BillingService {
             this.subscriberRepository.storeBills(subscriberList, month, year);
 
             this.subscriberRepository.releaseLock(lock);
-            Logger.log(`Billing ended for ${monthName}, ${year}`);
+            Logger.log(`Billing ended for ${month}, ${year}`);
         } catch (exception) {
             Logger.log(exception.message);
             throw exception.message;

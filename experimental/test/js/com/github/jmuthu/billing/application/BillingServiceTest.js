@@ -33,8 +33,8 @@ export function test() {
     var buildingRepository = new BuildingRepositorySpreadsheet();
     var pricingRepository = new PricingRepositorySpreadsheet();
     var billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
-    billingService.runBilling('October', 2016);
-    billingService.runBilling('November', 2016);
-    billingService.runBilling('December', 2016);
+    billingService.runBilling(9, 2016);
+    billingService.runBilling(10, 2016);
+    billingService.runBilling(11, 2016);
     billingService.finalizeSettlement('Siva(5)', 9);
 }
