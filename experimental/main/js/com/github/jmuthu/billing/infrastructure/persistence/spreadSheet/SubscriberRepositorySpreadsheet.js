@@ -147,7 +147,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
     storeBills(subscriberList: Array<Subscriber>, month: number, year: number) {
         let sheetName = 'Bill - ' + (month + 1) + '/' + year;
         if (subscriberList.length === 1 && subscriberList[0].status === 'Closed') {
-            sheetName = 'FS - ' + subscriberList[0].contact.name;
+            sheetName = 'FS - ' + subscriberList[0].id;
         }
         if (super.spreadSheet().getSheetByName(sheetName) !== null) {
             throw new Exception('Bill/Settlement Report  \'' + sheetName + '\' already exists!');
@@ -293,7 +293,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         for (let i = 0; i < this.subscriptionData.length; i++) {
             for (let j = 0; j < subscriber.subscriptionList.length; j++) {
                 if (this.subscriptionData[i][0] === subscriber.subscriptionList[j].id) {
-                    super.spreadSheet().getSheetByName('Subscription').getRange(i, 6).setValue(subscriber.subscriptionList[j].endDate);
+                    super.spreadSheet().getSheetByName('Subscription').getRange(i + 1, 6).setValue(subscriber.subscriptionList[j].endDate);
                 }
             }
         }

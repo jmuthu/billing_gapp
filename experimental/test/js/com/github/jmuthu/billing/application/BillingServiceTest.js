@@ -20,7 +20,7 @@ export function test() {
     sheet = spreadSheet.getSheetByName('Bill - 1/2017');
     if (sheet != null) spreadSheet.deleteSheet(sheet);
 
-    sheet = spreadSheet.getSheetByName('FS - Siva');
+    sheet = spreadSheet.getSheetByName('FS - Siva(5)');
     if (sheet != null) spreadSheet.deleteSheet(sheet);
 
     spreadSheet.getSheetByName('Subscriber').getRange('I5').setValue('Active');
