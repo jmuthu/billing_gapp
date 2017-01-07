@@ -18,13 +18,7 @@ export class Subscription {
     }
 
     calculateBillingPeriod(billDateRange: DateRange) {
-        this.currentBillingPeriod = billDateRange.clone();
-        if (this.activePeriod.startDate > billDateRange.startDate) {
-            this.currentBillingPeriod.startDate = this.activePeriod.startDate;
-        }
-        if (this.activePeriod.endDate < billDateRange.endDate) {
-            this.currentBillingPeriod.endDate = this.activePeriod.endDate;
-        }
+        this.currentBillingPeriod = billDateRange.getOverlapRange(this.activePeriod);
     }
 
     setPricing(pricing: Pricing) {
