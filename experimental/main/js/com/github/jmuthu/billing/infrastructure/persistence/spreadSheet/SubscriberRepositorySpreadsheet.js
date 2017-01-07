@@ -103,15 +103,10 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 this.subscriptionData[i][0],
                 this.subscriptionData[i][2],
                 this.subscriptionData[i][3],
-                this.subscriptionData[i][4],
-                this.subscriptionData[i][5]
+                new DateRange(this.subscriptionData[i][4], this.subscriptionData[i][5])
             );
 
-            if (subscription.startDate <= dateRange.endDate && dateRange.startDate <= subscription.endDate) {
-                //subscription.Pricing = pricingMap[subscriptionData[i][2]];
-                //if (subscription.Pricing === undefined) {
-                //  throwException('Error! Invalid subscription pricing configuration for ' + subscription.SubscriptionId);
-                //}
+            if (subscription.activePeriod.overlaps(dateRange)) {
                 if (subscriptionMap[this.subscriptionData[i][1]] === undefined) {
                     subscriptionMap[this.subscriptionData[i][1]] = [subscription];
                 } else {
@@ -133,7 +128,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                 arData[i][4]
             );
             let arId = arData[i][3];
-            if (dateRange.isWithinRange(ar.createdDate)) {
+            if (dateRange.isDateWithinRange(ar.createdDate)) {
                 if (arMap[arId]) {
                     arMap[arId].push(ar);
                 } else {
@@ -218,8 +213,8 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
             let charge = subscriber.currentBill.chargeList[0];
             buffer[rowIndex] = billSummary.concat([
                 charge.subscription.building.id,
-                charge.subscription.billingStart,
-                charge.subscription.billingEnd,
+                charge.subscription.currentBillingPeriod.startDate,
+                charge.subscription.currentBillingPeriod.endDate,
                 charge.monthlyFee,
                 charge.meterCharge]);
         } else {
@@ -231,8 +226,8 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
                     '', '', '', '', '', '', '', '', '', '',
                     charge.total,
                     charge.subscription.building.id,
-                    charge.subscription.billingStart,
-                    charge.subscription.billingEnd,
+                    charge.subscription.currentBillingPeriod.startDate,
+                    charge.subscription.currentBillingPeriod.endDate,
                     charge.monthlyFee,
                     charge.meterCharge];
             }
@@ -293,7 +288,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         for (let i = 0; i < this.subscriptionData.length; i++) {
             for (let j = 0; j < subscriber.subscriptionList.length; j++) {
                 if (this.subscriptionData[i][0] === subscriber.subscriptionList[j].id) {
-                    super.spreadSheet().getSheetByName('Subscription').getRange(i + 1, 6).setValue(subscriber.subscriptionList[j].endDate);
+                    super.spreadSheet().getSheetByName('Subscription').getRange(i + 1, 6).setValue(subscriber.subscriptionList[j].activePeriod.endDate);
                 }
             }
         }

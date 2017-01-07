@@ -28,10 +28,10 @@ export class Building {
         let datesList = [dateRange.startDate, DateUtil.incrementDay(dateRange.endDate)];
         for (let i = 0; i < this.subscriptionList.length; i++) {
             this.subscriptionList[i].calculateBillingPeriod(dateRange);
-            datesList.push(this.subscriptionList[i].billingStart);
+            datesList.push(this.subscriptionList[i].currentBillingPeriod.startDate);
 
             // Need to do this to sync with all start dates in period
-            let newEnd = DateUtil.incrementDay(this.subscriptionList[i].billingEnd);
+            let newEnd = DateUtil.incrementDay(this.subscriptionList[i].currentBillingPeriod.endDate);
             datesList.push(newEnd);
         }
         let dates = DateUtil.sortUniqueDate(datesList);
@@ -40,7 +40,7 @@ export class Building {
             let end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);
 
-            let count = this.countSubscription(dates[i], end);
+            let count = this.countSubscription(new DateRange(dates[i], end));
             let proration = DateUtil.calculateProration(dates[i], end, dateRange.startDate);
             let meterValue = 0;
             if (this.meterReadingList === undefined) {
@@ -70,10 +70,10 @@ export class Building {
         return result;
     }
 
-    countSubscription(startDate: Date, endDate: Date) {
+    countSubscription(dateRange: DateRange) {
         let count = 0;
         for (let i = 0; i < this.subscriptionList.length; i++) {
-            if (this.subscriptionList[i].startDate <= startDate && this.subscriptionList[i].endDate >= endDate) {
+            if (this.subscriptionList[i].currentBillingPeriod.isWithinRange(dateRange)) {
                 count++;
             }
         }
@@ -92,15 +92,12 @@ export class MeterReading {
     }
 }
 
-export class SubscriptionPeriod {
-    startDate: Date;
-    endDate: Date;
+export class SubscriptionPeriod extends DateRange {
     count: number;
     proration: number;
     meterValue: number;
     constructor(startDate: Date, endDate: Date, count: number, proration: number, meterValue: number) {
-        this.startDate = startDate;
-        this.endDate = endDate;
+        super(startDate, endDate);
         this.count = count;
         this.proration = proration;
         this.meterValue = meterValue;

@@ -6,39 +6,24 @@ export class Subscription {
     id: string;
     pricingId: string;
     buildingId: string;
-    startDate: Date;
-    endDate: Date;
-    billingStart: Date;
-    billingEnd: Date;
+    activePeriod: DateRange;
+    currentBillingPeriod: DateRange;
     pricing: Pricing;
     building: Building;
-    constructor(id: string, pricingId: string, buildingId: string, startDate: Date, endDate: Date) {
+    constructor(id: string, pricingId: string, buildingId: string, activePeriod: DateRange) {
         this.id = id;
         this.pricingId = pricingId;
         this.buildingId = buildingId;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.billingStart = startDate;
-        this.billingEnd = endDate;
+        this.activePeriod = activePeriod;
     }
 
     calculateBillingPeriod(billDateRange: DateRange) {
-        this.billingStart = billDateRange.startDate;
-        this.billingEnd = billDateRange.endDate;
-        if (this.startDate > billDateRange.startDate) {
-            if (this.endDate > billDateRange.endDate) {
-                this.billingStart = this.startDate;
-            } else {
-                this.billingStart = this.startDate;
-                this.billingEnd = this.endDate;
-            }
-        } else if (this.endDate < billDateRange.endDate) {
-            if (this.startDate > billDateRange.startDate) {
-                this.billingStart = this.startDate;
-                this.billingEnd = this.endDate;
-            } else {
-                this.billingEnd = this.endDate;
-            }
+        this.currentBillingPeriod = billDateRange.clone();
+        if (this.activePeriod.startDate > billDateRange.startDate) {
+            this.currentBillingPeriod.startDate = this.activePeriod.startDate;
+        }
+        if (this.activePeriod.endDate < billDateRange.endDate) {
+            this.currentBillingPeriod.endDate = this.activePeriod.endDate;
         }
     }
 
@@ -59,9 +44,8 @@ export class Subscription {
     }
 
     cancel(cancelDate: Date) {
-        if (this.endDate > cancelDate) {
-            this.endDate = cancelDate;
-            this.billingEnd = cancelDate;
+        if (this.activePeriod.endDate > cancelDate) {
+            this.activePeriod.endDate = cancelDate;
         }
     }
 }

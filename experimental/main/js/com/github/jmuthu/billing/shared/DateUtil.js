@@ -68,12 +68,28 @@ export class DateRange {
         this.startDate = startDate;
         this.endDate = endDate;
     }
+    clone() {
+        return new DateRange(new Date(this.startDate), new Date(this.endDate));
+    }
     static createMonthRange(month: number, year: number) {
         return new DateRange(new Date(year, month, 1, 0, 0, 0, 0),
             new Date(year, month, DateUtil.daysInMonth(month, year), 0, 0, 0, 0));
     }
-    isWithinRange(date: Date) {
+    isDateWithinRange(date: Date) {
         if (date >= this.startDate && date <= this.endDate) {
+            return true;
+        }
+        return false;
+    }
+    isWithinRange(dateRange: DateRange) {
+        if (this.startDate <= dateRange.startDate && dateRange.endDate <= this.endDate) {
+            return true;
+        }
+        return false;
+    }
+    overlaps(dateRange: DateRange) {
+        if (this.startDate <= dateRange.endDate &&
+            dateRange.startDate <= this.endDate) {
             return true;
         }
         return false;

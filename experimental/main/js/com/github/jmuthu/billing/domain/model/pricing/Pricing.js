@@ -31,7 +31,7 @@ export class Pricing {
         let meterCharge = 0;
         for (let i = 0; i < periodList.length; i++) {
             let period = periodList[i];
-            if (subscription.billingStart <= period.startDate && subscription.billingEnd >= period.endDate) {
+            if (subscription.currentBillingPeriod.isWithinRange(period)) {
                 let price = this.pricingPer1;
                 if (period.count == 2) {
                     price = this.pricingPer2;
