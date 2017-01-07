@@ -1,23 +1,22 @@
 // @flow
 import { Subscription } from '../subscriber/Subscription';
 import { SubscriptionPeriod } from '../building/Building';
+import { DateRange } from '../../../shared/DateUtil'
 export class Pricing {
     id: string;
     description: string;
-    startDate: Date;
-    endDate: Date;
+    activePeriod: DateRange;
     pricingPer1: number;
     pricingPer2: number;
     pricingPer3: number;
     meterRate: number;
     latePayment10_15days: number;
     latePaymentAfter15days: number;
-    constructor(id: string, description: string, startDate: Date, endDate: Date, pricingPer1: number, pricingPer2: number,
+    constructor(id: string, description: string, dateRange: DateRange, pricingPer1: number, pricingPer2: number,
         pricingPer3: number, meterRate: number, latePayment10_15days: number, latePaymentAfter15days: number) {
         this.id = id;
         this.description = description;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.activePeriod = dateRange;
         this.pricingPer1 = pricingPer1;
         this.pricingPer2 = pricingPer2;
         this.pricingPer3 = pricingPer3;

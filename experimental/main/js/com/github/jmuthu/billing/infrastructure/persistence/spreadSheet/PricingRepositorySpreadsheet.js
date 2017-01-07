@@ -5,6 +5,7 @@ import {
 import {
     Pricing
 } from '../../../domain/model/pricing/Pricing';
+import { DateRange } from '../../../shared/DateUtil';
 export class PricingRepositorySpreadsheet extends SpreadsheetRepository {
     pricingMap: { [id: string]: Pricing };
     constructor() {
@@ -42,8 +43,7 @@ export class PricingRepositorySpreadsheet extends SpreadsheetRepository {
             let pricing = new Pricing(
                 pricingData[i][0],
                 pricingData[i][1],
-                pricingData[i][2],
-                pricingData[i][3],
+                new DateRange(pricingData[i][2], pricingData[i][3]),
                 pricingData[i][4],
                 pricingData[i][5],
                 pricingData[i][6],
