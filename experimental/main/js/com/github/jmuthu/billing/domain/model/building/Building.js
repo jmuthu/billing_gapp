@@ -40,54 +40,22 @@ export class Building {
             let end = new Date(dates[i + 1].valueOf());
             end.setDate(end.getDate() - 1);
 
-            let count = this.countSubscription(new DateRange(dates[i], end));
-            let proration = DateUtil.calculateProration(dates[i], end, dateRange.startDate);
-            let meterValue = 0;
-            if (this.meterReadingList === undefined) {
-                if (count > 0) {
-                    throw new Exception('Error - Missing meter reading for building id - ' + this.id + '!');
-                }
-            } else {
-                meterValue = this.getMeterForBuildingPeriod(dates[i], end);
+            let subscriptionPeriod = new SubscriptionPeriod(dates[i], end);
+            subscriptionPeriod.compute(this.subscriptionList, this.meterReadingList);
+            if (this.meterReadingList === undefined &&
+                subscriptionPeriod.count > 0) {
+                throw new Exception('Error - Missing meter reading for building id - ' + this.id + '!');
             }
-
-            this.periodList.push(new SubscriptionPeriod(dates[i], end, count, proration, meterValue));
+            this.periodList.push(subscriptionPeriod);
         }
-    }
-
-    getMeterForBuildingPeriod(startDate: Date, endDate: Date) {
-        let result = 0;
-        for (let i = 0; i < this.meterReadingList.length; i++) {
-            if (this.meterReadingList[i].startDate <= endDate && this.meterReadingList[i].endDate >= startDate) {
-                let actualStart = this.meterReadingList[i].startDate > startDate ? this.meterReadingList[i].startDate :
-                    startDate;
-                let actualEnd = this.meterReadingList[i].endDate < endDate ? this.meterReadingList[i].endDate :
-                    endDate;
-                result += this.meterReadingList[i].value * (actualEnd.getTime() - actualStart.getTime() + 86400000) /
-                    (this.meterReadingList[i].endDate.getTime() - this.meterReadingList[i].startDate.getTime() + 86400000);
-            }
-        }
-        return result;
-    }
-
-    countSubscription(dateRange: DateRange) {
-        let count = 0;
-        for (let i = 0; i < this.subscriptionList.length; i++) {
-            if (this.subscriptionList[i].currentBillingPeriod.isWithinRange(dateRange)) {
-                count++;
-            }
-        }
-        return count;
     }
 }
 
 export class MeterReading {
-    startDate: Date;
-    endDate: Date;
+    activePeriod: DateRange;
     value: number;
-    constructor(startDate: Date, endDate: Date, value: number) {
-        this.startDate = startDate;
-        this.endDate = endDate;
+    constructor(activePeriod: DateRange, value: number) {
+        this.activePeriod = activePeriod;
         this.value = value;
     }
 }
@@ -96,10 +64,33 @@ export class SubscriptionPeriod extends DateRange {
     count: number;
     proration: number;
     meterValue: number;
-    constructor(startDate: Date, endDate: Date, count: number, proration: number, meterValue: number) {
+    constructor(startDate: Date, endDate: Date) {
         super(startDate, endDate);
-        this.count = count;
-        this.proration = proration;
-        this.meterValue = meterValue;
+        this.count = 0;
+        this.proration = 0;
+        this.meterValue = 0;
+    }
+
+    compute(subscriptionList: Array<Subscription>, meterReadingList: Array<MeterReading>) {
+        for (let i = 0; i < subscriptionList.length; i++) {
+            if (subscriptionList[i].currentBillingPeriod.isWithinRange(this)) {
+                this.count++;
+            }
+        }
+        this.proration = this.prorate();
+        if (meterReadingList !== undefined) {
+            this.getMeterForBuildingPeriod(meterReadingList);
+        }
+    }
+
+    getMeterForBuildingPeriod(meterReadingList: Array<MeterReading>) {
+        for (let i = 0; i < meterReadingList.length; i++) {
+            if (this.overlaps(meterReadingList[i].activePeriod)) {
+                let overlapRange = this.getOverlapRange(meterReadingList[i].activePeriod);
+
+                this.meterValue += meterReadingList[i].value * (overlapRange.getDurationInMs()) /
+                    meterReadingList[i].activePeriod.getDurationInMs();
+            }
+        }
     }
 }

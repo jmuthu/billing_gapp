@@ -50,12 +50,6 @@ export class DateUtil {
         result.setMonth(result.getMonth() - 1);
         return result;
     }
-
-    static calculateProration(actualStart, actualEnd, startDate) {
-        let noOfDays = (actualEnd.getTime() - actualStart.getTime()) / 86400000 + 1;
-        let proration = noOfDays / this.daysInMonth(startDate.getMonth(), startDate.getYear());
-        return proration;
-    }
 }
 
 export class DateRange {
@@ -93,5 +87,21 @@ export class DateRange {
             return true;
         }
         return false;
+    }
+    getOverlapRange(dateRange: DateRange) {
+        let actualStart = this.startDate > dateRange.startDate ? this.startDate :
+            dateRange.startDate;
+        let actualEnd = this.endDate < dateRange.endDate ? this.endDate :
+            dateRange.endDate;
+        return new DateRange(actualStart, actualEnd);
+    }
+    getDurationInMs() {
+        return (this.endDate.getTime() - this.startDate.getTime() + 86400000);
+    }
+
+    prorate() {
+        let noOfDays = this.getDurationInMs() / 86400000;
+        let proration = noOfDays / DateUtil.daysInMonth(this.endDate.getMonth(), this.endDate.getFullYear());
+        return proration;
     }
 }

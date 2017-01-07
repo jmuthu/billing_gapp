@@ -22,9 +22,9 @@ export class BuildingRepositorySpreadsheet extends SpreadsheetRepository {
         let meterReadingMap = {};
         for (let i = 1; i < meterData.length; i++) {
             let buildingId = meterData[i][2];
-            let meterReading = new MeterReading(meterData[i][0], meterData[i][1], meterData[i][5]);
+            let meterReading = new MeterReading(new DateRange(meterData[i][0], meterData[i][1]), meterData[i][5]);
 
-            if (meterReading.startDate <= dateRange.endDate && dateRange.startDate <= meterReading.endDate) {
+            if (meterReading.activePeriod.overlaps(dateRange)) {
                 if (meterReadingMap[buildingId]) {
                     meterReadingMap[buildingId].push(meterReading);
                 } else {
