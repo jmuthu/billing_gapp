@@ -5,6 +5,7 @@ import { Balance } from './Balance';
 import { Pricing } from '../pricing/Pricing';
 import { Bill } from './Bill';
 import { DateUtil, DateRange } from '../../../shared/DateUtil';
+import { Exception } from '../../../shared/Exception';
 
 export class Contact {
     name: string;
@@ -69,6 +70,10 @@ export class Subscriber {
     }
 
     setLateFeePricing(lateFeePricing: Pricing) {
+        if (this.lateFeePricingId && lateFeePricing === undefined) {
+            throw new Exception(
+                `Error! Late fee pricing id '${this.lateFeePricingId}' not found for subscriber id '${this.id}'`);
+        }
         this.lateFeePricing = lateFeePricing;
     }
 
