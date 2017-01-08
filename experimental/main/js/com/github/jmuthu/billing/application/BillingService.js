@@ -59,6 +59,7 @@ export class BillingService {
         let billDateRange = DateRange.createMonthRange(date.getMonth(), date.getFullYear());
 
         try {
+            let lock = this.subscriberRepository.getLock();
             let subscriberList = this.fetchSubscribers(billDateRange);
             let settlementSubscriber: Subscriber;
             for (let i = 0; i < subscriberList.length; i++) {
@@ -73,6 +74,7 @@ export class BillingService {
             this.subscriberRepository.storeBills([settlementSubscriber], date.getMonth(), date.getFullYear());
             this.subscriberRepository.store(settlementSubscriber);
 
+            this.subscriberRepository.releaseLock(lock);
             Logger.log(`Settlement ended for ${subscriberId}`);
         } catch (exception) {
             Logger.log(exception.message);
