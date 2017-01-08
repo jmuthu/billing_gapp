@@ -13,7 +13,7 @@ export function onOpen() {
 }
 
 export function monthlyBillingDialog() {
-    var html = HtmlService.createTemplateFromFile('CreateBill')
+    let html = HtmlService.createTemplateFromFile('CreateBill')
         .evaluate()
         .setWidth(300)
         .setHeight(140);
@@ -22,7 +22,7 @@ export function monthlyBillingDialog() {
 }
 
 export function settlementDialog() {
-    var html = HtmlService.createTemplateFromFile('Settlement')
+    let html = HtmlService.createTemplateFromFile('Settlement')
         .evaluate()
         .setWidth(300)
         .setHeight(250);
@@ -31,17 +31,17 @@ export function settlementDialog() {
 }
 
 export function monthlyBilling(month: number, year: number) {
-    var subscriberRepository = new SubscriberRepositorySpreadsheet();
-    var buildingRepository = new BuildingRepositorySpreadsheet();
-    var pricingRepository = new PricingRepositorySpreadsheet();
-    var billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
+    let subscriberRepository = new SubscriberRepositorySpreadsheet();
+    let buildingRepository = new BuildingRepositorySpreadsheet();
+    let pricingRepository = new PricingRepositorySpreadsheet();
+    let billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
     billingService.runBilling(month, year);
 }
 
 export function generateFinalSettlement(subscriberId: string, settlementDay: number) {
-    var subscriberRepository = new SubscriberRepositorySpreadsheet();
-    var buildingRepository = new BuildingRepositorySpreadsheet();
-    var pricingRepository = new PricingRepositorySpreadsheet();
-    var billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
+    let subscriberRepository = new SubscriberRepositorySpreadsheet();
+    let buildingRepository = new BuildingRepositorySpreadsheet();
+    let pricingRepository = new PricingRepositorySpreadsheet();
+    let billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
     billingService.finalizeSettlement(subscriberId, settlementDay);
 }

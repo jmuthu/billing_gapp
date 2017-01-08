@@ -25,14 +25,14 @@ export function test() {
 
     spreadSheet.getSheetByName('Subscriber').getRange('I5').setValue('Active');
 
-    var date = new Date(2018, 0, 1, 0, 0, 0, 0);
+    let date = new Date(2018, 0, 1, 0, 0, 0, 0);
     spreadSheet.getSheetByName('Subscription').getRange('F5').setValue(date);
     spreadSheet.getSheetByName('Subscription').getRange('F6').setValue(date);
 
-    var subscriberRepository = new SubscriberRepositorySpreadsheet();
-    var buildingRepository = new BuildingRepositorySpreadsheet();
-    var pricingRepository = new PricingRepositorySpreadsheet();
-    var billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
+    let subscriberRepository = new SubscriberRepositorySpreadsheet();
+    let buildingRepository = new BuildingRepositorySpreadsheet();
+    let pricingRepository = new PricingRepositorySpreadsheet();
+    let billingService = new BillingService(subscriberRepository, buildingRepository, pricingRepository);
     billingService.runBilling(9, 2016);
     billingService.runBilling(10, 2016);
     billingService.runBilling(11, 2016);
