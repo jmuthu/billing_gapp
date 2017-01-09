@@ -48,7 +48,7 @@ gulp.task('build-es6-old', () =>
 );
 
 gulp.task('build-es3', () =>
-    gulp.src('src/*.js')
+    gulp.src('src_es3/*.js')
         .pipe(babel({
             presets: ['es2015'],
             plugins: ['remove-comments', 'transform-remove-strict-mode'],

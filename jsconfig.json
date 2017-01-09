@@ -5,7 +5,7 @@
         "removeComments": true
     },
     "files": [
-        "src/",
+        "src_es3/",
         "experimental/"
     ],
     "typeAcquisition": {
