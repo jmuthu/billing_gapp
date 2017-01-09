@@ -7,8 +7,7 @@ const rollupBabel = require('rollup-plugin-babel');
 
 gulp.task('build-es6', function () {
     return rollup({
-        //entry: 'experimental/test/js/com/github/jmuthu/billing/application/BillingServiceTest.js',
-        entry: 'experimental/main/webapp/main.js',
+        entry: 'src/main/webapp/main.js',
         plugins: [
             rollupBabel({
                 exclude: 'node_modules/**',
@@ -28,22 +27,17 @@ gulp.task('build-es6', function () {
 
 gulp.task('build-es6-old', () =>
     gulp.src([
-        'experimental/**/*/babelHelpers.js',
-        'experimental/**/shared/*.js',
-        'experimental/**/model/*.js',
-        'experimental/**/spreadSheet/*.js',
-        'experimental/**/*/BillingService.js',
-        'experimental/**/*/BillingServiceTest.js',
+        'src/**/*.js'
     ])
         .pipe(babel({
             presets: [['es2015', {
                 'modules': false
             }]],
             ignore: ['babelHelpers.js'],
-            plugins: ['remove-comments', 'external-helpers', 'transform-remove-strict-mode'],
+            plugins: ['transform-flow-strip-types', 'remove-comments', 'external-helpers', 'transform-remove-strict-mode'],
             generatorOpts: { quotes: 'single' }
         }))
-        .pipe(concat('billing_gapp_es6.js'))
+        .pipe(concat('billing_gapp_es6_old.js'))
         .pipe(gulp.dest('./built'))
 );
 
