@@ -66,7 +66,7 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let date = new Date(previous.getFullYear(), previous.getMonth(), DateUtil.daysInMonth(previous.getMonth(), previous.getFullYear()), 0, 0, 0, 0);
         let prevBalIndex = this.findBalanceDataIndex(balanceData, date);
         if (prevBalIndex == -1) {
-            throw new Exception('Error! Missing balance information for ' + dateRange.startDate.getMonth() + '/' + dateRange.startDate.getFullYear());
+            throw new Exception('Error! Missing balance information for ' + (previous.getMonth() + 1) + '/' + previous.getFullYear());
         }
 
         for (let i = 1; i < balanceData.length; i++) {
@@ -284,6 +284,9 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
             if (this.subscriberData[i][0] === subscriber.id) {
                 super.spreadSheet().getSheetByName('Subscriber').getRange(i + 1, 9).setValue(subscriber.status);
             }
+        }
+        if (subscriber.subscriberList === undefined) {
+            return;
         }
         for (let i = 0; i < this.subscriptionData.length; i++) {
             for (let j = 0; j < subscriber.subscriptionList.length; j++) {
