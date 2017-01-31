@@ -19,6 +19,9 @@ export class SubscriberRepositorySpreadsheet extends SpreadsheetRepository {
         let balanceMap = this.findAllBalance(dateRange);
         let arMap = this.findAllAccountReceivable(dateRange);
         for (let i = 1; i < this.subscriberData.length; i++) {
+            if (!this.subscriberData[i][0]) {
+                continue;
+            }
             let contact = new Contact(
                 this.subscriberData[i][1],
                 this.subscriberData[i][2],
