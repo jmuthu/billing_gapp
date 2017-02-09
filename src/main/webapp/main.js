@@ -16,7 +16,7 @@ export function monthlyBillingDialog() {
     let html = HtmlService.createTemplateFromFile('CreateBill')
         .evaluate()
         .setWidth(300)
-        .setHeight(140);
+        .setHeight(250);
     SpreadsheetApp.getUi()
         .showModalDialog(html, 'Monthly Billing');
 }
@@ -25,7 +25,7 @@ export function settlementDialog() {
     let html = HtmlService.createTemplateFromFile('Settlement')
         .evaluate()
         .setWidth(300)
-        .setHeight(250);
+        .setHeight(300);
     SpreadsheetApp.getUi()
         .showModalDialog(html, 'Finalize Settlement');
 }
